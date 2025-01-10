@@ -37,6 +37,10 @@
         {
           "name": "github",
           "url": "https://github.com/x3ps"
+        },
+        {
+          "name": "matrix",
+          "url": ""
         }
       ],
       "author": {
@@ -54,7 +58,7 @@
         "copyright": true,
         "rss": true,
         "bottomText": [
-          "Блог сделан с помощью <a href=\"https://gohugo.io\">Hugo</a> и темы <a href=\"https://github.com/rhazdon/hugo-theme-hello-friend-ng\">Hello Friend NG</a>."
+          "Блог создан с помощью <a href=\"https://gohugo.io\">Hugo</a> и темы <a href=\"https://github.com/rhazdon/hugo-theme-hello-friend-ng\">Hello Friend NG</a>."
         ]
       },
       "logo": {

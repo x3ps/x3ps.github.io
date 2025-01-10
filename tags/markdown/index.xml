@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Markdown on x3ps</title><link>https://x3ps.github.io/tags/markdown/</link><description>Recent content in Markdown on x3ps</description><generator>Hugo</generator><language>ru-ru</language><copyright>© 2025</copyright><lastBuildDate>Fri, 10 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://x3ps.github.io/tags/markdown/index.xml" rel="self" type="application/rss+xml"/><item><title>Тестовая статья</title><link>https://x3ps.github.io/posts/2025/01/%D1%82%D0%B5%D1%81%D1%82%D0%BE%D0%B2%D0%B0%D1%8F-%D1%81%D1%82%D0%B0%D1%82%D1%8C%D1%8F/</link><pubDate>Fri, 10 Jan 2025 00:00:00 +0000</pubDate><guid>https://x3ps.github.io/posts/2025/01/%D1%82%D0%B5%D1%81%D1%82%D0%BE%D0%B2%D0%B0%D1%8F-%D1%81%D1%82%D0%B0%D1%82%D1%8C%D1%8F/</guid><description>&lt;h1 id="это-заголовок-уровня-1">Это заголовок уровня 1&lt;/h1>
+&lt;p>Добро пожаловать в мой блог! Это тестовая статья для проверки работы форматирования.&lt;/p>
+&lt;h2 id="это-заголовок-уровня-2">Это заголовок уровня 2&lt;/h2>
+&lt;ul>
+&lt;li>Список пунктов:
+&lt;ul>
+&lt;li>Пункт 1&lt;/li>
+&lt;li>Пункт 2&lt;/li>
+&lt;li>Пункт 3&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;h3 id="это-заголовок-уровня-3">Это заголовок уровня 3&lt;/h3>
+&lt;p>Вот пример кода:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-python" data-lang="python">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">def&lt;/span> &lt;span style="color:#a6e22e">hello_world&lt;/span>():
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> print(&lt;span style="color:#e6db74">&amp;#34;Hello, world!&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>А вот пример цитаты:&lt;/p>
+&lt;blockquote>
+&lt;p>Это пример цитаты в markdown.&lt;/p>
+&lt;/blockquote>
+&lt;p>Спасибо, что читаете мой блог!&lt;/p></description></item></channel></rss>

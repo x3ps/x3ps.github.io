@@ -60,7 +60,7 @@ jobs:
             *URL коммита:* [Смотреть изменения в GitHub](${{ github.event.head_commit.url }})
 
             *Ветка:* ${{ github.ref_name }}
-            *Репозиторий:* ${{ github.repository }}
+            *Репозиторий:* https://github.com/${{ github.repository }}
 
             🚀 Сайт обновлён на GitHub Pages!
       
@@ -69,7 +69,7 @@ jobs:
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
+          token: https://github.com/${{ secrets.TELEGRAM_TOKEN }}
           format: markdown
           message: |
             ❌ *Ошибка при обновлении блога!*

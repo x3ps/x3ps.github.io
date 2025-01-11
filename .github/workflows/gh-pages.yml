@@ -45,6 +45,7 @@ jobs:
           publish_dir: ./public
 
       - name: Notify
+        if: success()
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_TO }}
@@ -53,14 +54,13 @@ jobs:
           message: |
             📝 *Обновление блога!*
             
-            ✅ *Сборка успешна.*
+            ✅ *Сборка и деплой завершены.*
 
             *Автор изменений:* ${{ github.actor }}
             *Сообщение коммита:* ${{ github.event.head_commit.message }}
             *URL коммита:* [Смотреть изменения в GitHub](${{ github.event.head_commit.url }})
 
-            *Ветка:* ${{ github.ref_name }}
-            *Репозиторий:* https://github.com/${{ github.repository }}
+            *Ветка:* ${{ github.ref_name }} [Репозиторий](https://github.com/${{ github.repository }})
 
             🚀 Сайт обновлён на GitHub Pages!
       
@@ -78,8 +78,7 @@ jobs:
             *Сообщение коммита:* ${{ github.event.head_commit.message }}
             *URL коммита:* [Смотреть изменения в GitHub](${{ github.event.head_commit.url }})
 
-            *Ветка:* ${{ github.ref_name }}
-            *Репозиторий:* ${{ github.repository }}
+            *Ветка:* ${{ github.ref_name }} [Репозиторий](https://github.com/${{ github.repository }})
 
             ⚠️ Проверьте журнал сборки и исправьте ошибки.
 

@@ -15,7 +15,7 @@
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-python" data-lang="python">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">def&lt;/span> &lt;span style="color:#a6e22e">hello_world&lt;/span>():
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> print(&lt;span style="color:#e6db74">&amp;#34;Hello, world!&amp;#34;&lt;/span>)
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>А вот пример цитаты:&lt;/p>
-&lt;p>5 test&lt;/p>
+&lt;p>6 test&lt;/p>
 &lt;blockquote>
 &lt;p>Это пример цитаты в markdown.&lt;/p>
 &lt;/blockquote>
@@ -36,7 +36,7 @@
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">hello_world</span>():
 </span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">&#34;Hello, world!&#34;</span>)
 </span></span></code></pre></div><p>А вот пример цитаты:</p>
-<p>5 test</p>
+<p>6 test</p>
 <blockquote>
 <p>Это пример цитаты в markdown.</p>
 </blockquote>

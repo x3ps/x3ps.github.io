@@ -4,27 +4,37 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'assets/**'
+      - 'content/**'
+      - 'data/**'
+      - 'i18n/**'
+      - 'layouts/**'
+      - 'static/**'
+      - 'themes/**'
+      - 'hugo.*'
 
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
           fetch-depth: 0
 
       - name: Setup Hugo
-        uses: peaceiris/actions-hugo@v2
+        uses: peaceiris/actions-hugo@v3
         with:
-          hugo-version: "latest"
+          hugo-version: "0.140.2"
           extended: true
 
       - name: Build
-        run: hugo --minify
+        run: hugo --minify --buildDrafts=false
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
@@ -33,3 +43,42 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: ./public
+
+      - name: Notify
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            📝 *Обновление блога!*
+            
+            ✅ *Сборка успешна.*
+
+            *Автор изменений:* ${{ github.actor }}
+            *Сообщение коммита:* ${{ github.event.head_commit.message }}
+            *URL коммита:* [Смотреть изменения в GitHub](${{ github.event.head_commit.url }})
+
+            *Ветка:* ${{ github.ref_name }}
+            *Репозиторий:* ${{ github.repository }}
+
+            🚀 Сайт обновлён на GitHub Pages!
+      
+      - name: Notify Failure
+        if: failure()
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            ❌ *Ошибка при обновлении блога!*
+            
+            *Автор изменений:* ${{ github.actor }}
+            *Сообщение коммита:* ${{ github.event.head_commit.message }}
+            *URL коммита:* [Смотреть изменения в GitHub](${{ github.event.head_commit.url }})
+
+            *Ветка:* ${{ github.ref_name }}
+            *Репозиторий:* ${{ github.repository }}
+
+            ⚠️ Проверьте журнал сборки и исправьте ошибки.
+
+

@@ -1,3 +1,28 @@
-/public
-/resources
-.hugo_build.lock
+# Логи и temporary файлы
+*.log
+*.tmp
+*.swp
+*.lock
+
+# Hugo публичный каталог (сгенерированный)
+public/
+
+# Hugo ресурсовый каталог (сгенерированный)
+resources/_gen/
+
+# Настройки системы и IDE
+.DS_Store
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.vscode/
+
+# Настройки билда
+node_modules/
+dist/
+vendor/
+
+# Бинарные файлы
+hugo.exe
+hugo.dms
+hugo.zip

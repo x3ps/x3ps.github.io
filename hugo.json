@@ -28,7 +28,9 @@
       "description": "Персональный блог и страница обо мне",
       "keywords": "Блог, Обо мне",
       "homeSubtitle": "Добро пожаловать на мой сайт!",
-      "homeContent": "Привет! Я — разработчик и энтузиаст технологий. Создаю веб-приложения, пет-проекты и делюсь своим опытом. Если вам нравится мой контент, вы можете поддержать меня через криптовалюту: <br> Bitcoin: bc1qexample123 <br> Ethereum: 0xexample456 <br> USDT (TRC-20): Texample789. Спасибо за вашу поддержку!",
+      "homeContent": "Добро пожаловать! Вы можете использовать поиск и читать последние статьи ниже.",
+      "recentPostsTitle": "Последние статьи",
+      "searchTitle": "Поиск",
       "social": [
         {
           "name": "email",
@@ -58,7 +60,7 @@
         "copyright": true,
         "rss": true,
         "bottomText": [
-          "Блог создан с помощью <a href=\"https://gohugo.io\">Hugo</a> и темы <a href=\"https://github.com/rhazdon/hugo-theme-hello-friend-ng\">Hello Friend NG</a>."
+          "Создан с помощю <a href=\"https://gohugo.io\">Hugo</a> и <a href=\"https://github.com/rhazdon/hugo-theme-hello-friend-ng\">Hello Friend NG</a>."
         ]
       },
       "logo": {
@@ -80,5 +82,9 @@
           "url": "/posts/"
         }
       ]
+    },
+    "taxonomies": {
+      "tag": "tags",
+      "category": "categories"
     }
   }

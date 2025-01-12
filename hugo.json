@@ -3,29 +3,31 @@
     "title": "x3ps",
     "languageCode": "ru-ru",
     "theme": "hello-friend-ng",
-    "enableThemeToggle": true,
+
     "PygmentsCodeFences": true,
     "PygmentsStyle": "monokai",
+
     "copyright": "© 2025",
+
     "archetypeDir": "archetypes",
     "contentDir": "content",
     "dataDir": "data",
     "layoutDir": "layouts",
     "publishDir": "public",
+
     "buildDrafts": false,
     "buildFuture": false,
     "buildExpired": false,
     "canonifyURLs": true,
+
     "enableRobotsTXT": true,
     "enableGitInfo": false,
     "enableEmoji": true,
-    "disableReadOtherPosts": true,
+    "enableMissingTranslationPlaceholders": false,
     "disableRSS": false,
     "disableSitemap": false,
     "disable404": false,
-    "permalinks": {
-      "posts": "/posts/:year/:month/:title/"
-    },
+
     "params": {
       "description": "Персональный блог и страница обо мне",
       "keywords": "Блог, Обо мне",
@@ -33,11 +35,25 @@
       "homeContent": "Добро пожаловать! Вы можете использовать поиск и читать последние статьи ниже.",
       "recentPostsTitle": "Последние статьи",
       "searchTitle": "Поиск",
+
+      "dateform": "Jan 2, 2006",
+      "dateformShort": "Jan 2",
+      "dateformNum": "2006-01-02",
+      "dateformNumTime": "2006-01-02 15:04",
+      
+      "utterances": {
+        "repository": "https://github.com/x3ps/x3ps.github.io",
+        "label": "comments",
+        "issueTerm": "pathname",
+        "theme": "github-dark"
+      },
+      
       "portrait": {
         "path": "/img/avatar.svg",
         "alt": "Portrait",
         "maxWidth": "100px"
       },
+
       "social": [
         {
           "name": "email",
@@ -49,7 +65,7 @@
         },
         {
           "name": "matrix",
-          "url": ""
+          "url": "https://matrix.to/#/@x3ps:matrix.org"
         }
       ],
       "author": {
@@ -67,7 +83,7 @@
         "copyright": true,
         "rss": true,
         "bottomText": [
-          "Создан с помощю <a href=\"https://gohugo.io\">Hugo</a> и <a href=\"https://github.com/rhazdon/hugo-theme-hello-friend-ng\">Hello Friend NG</a>."
+          "Made with <a href=\"https://gohugo.io\">Hugo</a> & <a href=\"https://github.com/rhazdon/hugo-theme-hello-friend-ng\">Hello Friend NG</a>."
         ]
       },
       "logo": {
@@ -90,8 +106,37 @@
         }
       ]
     },
+
+    "enableThemeToggle": true,
+    "enableGlobalLanguageMenu": false,
+    "disableReadOtherPosts": false,
+    "enableSharingButtons": false,
+    "justifyContent": false,
+
     "taxonomies": {
       "tag": "tags",
       "category": "categories"
-    }
+    },
+
+    "pagination": {
+      "disableAliases": false,
+      "pagerSize": 20,
+      "path": "page"
+    },
+    
+    "blackfriday": {
+      "hrefTargetBlank": true
+    },
+
+    "permalinks": {
+      "posts": "/posts/:year/:month/:title/"
+    },
+
+    "customCSS": [
+
+    ],
+
+    "customJS": [
+
+    ]
   }

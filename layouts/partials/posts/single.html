@@ -121,30 +121,7 @@
     {{- end }}
 
     {{ partial "pagination-single.html" . }}
-
-    {{ if .Site.Config.Services.Disqus.Shortname }}
-      {{ if not (eq .Params.Comments "false") }}
-        <div id="comments">
-          {{ template "_internal/disqus.html" . }}
-        </div>
-      {{ end }}
-    {{ end }}
-
-    {{ if .Site.Params.Commento.Url }}
-      <script defer src={{ .Site.Params.Commento.Url }}></script>
-      <div id="commento"></div>
-    {{ end }}
-
-    {{ if .Site.Params.Utterances.Repository }}
-    <script src="https://utteranc.es/client.js"
-            repo="{{ .Site.Params.Utterances.Repository }}"
-            {{ if .Site.Params.Utterances.Label }}label="{{ .Site.Params.Utterances.Label }}"{{ end }}
-            issue-term="{{ .Site.Params.Utterances.IssueTerm }}"
-            theme="{{ .Site.Params.Utterances.Theme }}"
-            crossorigin="anonymous"
-            async>
-    </script>
-    {{ end }}
+    <div id="giscus-comments" class="giscus"></div>
     <script src="https://giscus.app/client.js"
         data-repo="x3ps/x3ps.github.io"
         data-repo-id="R_kgDONobsuQ"

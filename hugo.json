@@ -2,12 +2,13 @@
     "baseURL": "https://x3ps.github.io",
     "title": "x3ps",
     "languageCode": "ru-ru",
+    "defaultContentLanguage": "ru",
     "theme": "hello-friend-ng",
 
     "PygmentsCodeFences": true,
     "PygmentsStyle": "monokai",
 
-    "copyright": "© 2025",
+    "copyright": "2025",
 
     "archetypeDir": "archetypes",
     "contentDir": "content",
@@ -31,15 +32,15 @@
     "params": {
       "description": "Персональный блог и страница обо мне",
       "keywords": "Блог, Обо мне",
-      "homeSubtitle": "Добро пожаловать на мой сайт!",
+      "homeSubtitle": "Добро пожаловать на мой блог!",
       "homeContent": "Добро пожаловать! Вы можете использовать поиск и читать последние статьи ниже.",
       "recentPostsTitle": "Последние статьи",
       "searchTitle": "Поиск",
 
-      "dateform": "Jan 2, 2006",
-      "dateformShort": "Jan 2",
-      "dateformNum": "2006-01-02",
-      "dateformNumTime": "2006-01-02 15:04",
+      "dateform": "2 Jan, 2006",
+      "dateformShort": "2 Jan",
+      "dateformNum": "02-01-2006",
+      "dateformNumTime": "02-01-2006 15:04",
       
       "portrait": {
         "path": "/img/avatar.svg",

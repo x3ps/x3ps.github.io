@@ -41,13 +41,6 @@
       "dateformNum": "2006-01-02",
       "dateformNumTime": "2006-01-02 15:04",
       
-      "utterances": {
-        "repository": "https://github.com/x3ps/x3ps.github.io",
-        "label": "comments",
-        "issueTerm": "pathname",
-        "theme": "github-dark"
-      },
-      
       "portrait": {
         "path": "/img/avatar.svg",
         "alt": "Portrait",

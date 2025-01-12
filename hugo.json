@@ -31,6 +31,11 @@
       "homeContent": "Добро пожаловать! Вы можете использовать поиск и читать последние статьи ниже.",
       "recentPostsTitle": "Последние статьи",
       "searchTitle": "Поиск",
+      "portrait": {
+        "path": "/img/avatar.svg",
+        "alt": "Portrait",
+        "maxWidth": "100px"
+      },
       "social": [
         {
           "name": "email",

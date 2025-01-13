@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Post on x3ps</title><link>https://x3ps.github.io/categories/post/</link><description>Recent content in Post on x3ps</description><generator>Hugo</generator><language>ru-ru</language><copyright>2025</copyright><lastBuildDate>Mon, 13 Jan 2025 22:13:58 +0700</lastBuildDate><atom:link href="https://x3ps.github.io/categories/post/index.xml" rel="self" type="application/rss+xml"/><item><title>Markdown Test</title><link>https://x3ps.github.io/posts/2025/01/markdown-test/</link><pubDate>Mon, 13 Jan 2025 22:13:58 +0700</pubDate><guid>https://x3ps.github.io/posts/2025/01/markdown-test/</guid><description>&lt;h2 id="benchmarking-the-support-of-markdown-with-a-comprehensive-checklist">Benchmarking the support of Markdown with a comprehensive checklist&lt;/h2>
+&lt;p>&lt;strong>You&amp;rsquo;re working on a project featuring Markdown?&lt;/strong>&lt;/p>
+&lt;p>Drop &lt;a href="https://raw.githubusercontent.com/RoneoOrg/markdown/main/README.md">the source of this page&lt;/a> wherever you want to test &lt;em>or showcase&lt;/em> the support of Markdown, and check that every single feature is properly rendered.&lt;/p>
+&lt;p>&lt;strong>Table of Contents&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="#basic-formatting">Basic formatting&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#blockquotes">Blockquotes&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#lists">Lists&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#linebreaks">Linebreaks&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#links">Links&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#code-formatting">Code formatting&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#images">Images&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#task-lists">Task lists&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#tables">Tables&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#footnotes">Footnotes&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#definition-list">Definition List&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#headings">Headings&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;h2 id="basic-formatting">Basic formatting&lt;/h2>
+&lt;h3 id="bold-text">&lt;strong>Bold&lt;/strong> text&lt;/h3>
+&lt;p>&lt;strong>Syntax:&lt;/strong>&lt;/p>
+&lt;pre>&lt;code>You can mark some text as bold with **two asterisks**
+or __two underscores__.
+&lt;/code>&lt;/pre>
+&lt;p>&lt;strong>Output:&lt;/strong>&lt;/p></description></item></channel></rss>

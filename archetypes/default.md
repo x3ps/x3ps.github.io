@@ -1,11 +1,12 @@
-+++
-title = '{{ replace .File.ContentBaseName "-" " " | title }}'
-date = '{{ .Date }}'
-draft = false
-description = "Краткое описание поста"
-tags = []
-categories = []
-+++
+---
+title: "{{ replace .Name "-" " " | title }}"
+date: {{ .Date }}
+draft: true
+categories:
+  - Category-Example
+tags:
+  - Tag-Example
+---
 
 # {{ replace .File.ContentBaseName "-" " " | title }}
 

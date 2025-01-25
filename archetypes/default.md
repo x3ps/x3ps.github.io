@@ -2,13 +2,13 @@
 title: "{{ replace .Name "-" " " | title }}"
 date: {{ .Date }}
 draft: true
+toc: true
+description: Description-Example
 categories:
   - Category-Example
 tags:
   - Tag-Example
 ---
-
-# {{ replace .File.ContentBaseName "-" " " | title }}
 
 Напишите здесь текст вашего поста. Добавьте структурированные заголовки и контент.
 

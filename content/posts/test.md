@@ -1,12 +1,13 @@
 ---
 title: "Markdown Test"
-date: 2025-01-13T22:13:58+07:00
+date: 2025-01-13T00:00:00+00:00
 draft: false
+description: "Тест разметки Hugo с темой Hello Friend NG."
 categories:
-  - post
+  - Test
 tags:
-  - test
-  - markdown
+  - Test
+  - Markdown
 ---
 ## Benchmarking the support of Markdown with a comprehensive checklist
 

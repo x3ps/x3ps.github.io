@@ -73,7 +73,7 @@
         }
       },
       "footer": {
-        "author": true,
+        "author": false,
         "copyright": true,
         "rss": true,
         "bottomText": [

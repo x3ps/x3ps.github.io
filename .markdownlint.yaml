@@ -1,0 +1,10 @@
+default: true
+
+# Line length - disable for blog posts which may have long lines
+MD013: false
+
+# Inline HTML - disable as Hugo shortcodes may use HTML
+MD033: false
+
+# First heading should be h1 - disable as Hugo frontmatter posts start with h2
+MD041: false

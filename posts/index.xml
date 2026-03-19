@@ -1,28 +1,28 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on x3ps</title><link>https://x3ps.github.io/posts/</link><description>Recent content in Posts on x3ps</description><generator>Hugo -- gohugo.io</generator><language>ru-ru</language><copyright>2025</copyright><lastBuildDate>Tue, 14 Jan 2025 02:38:50 +0700</lastBuildDate><atom:link href="https://x3ps.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Markdown Test</title><link>https://x3ps.github.io/posts/2025/01/markdown-test/</link><pubDate>Mon, 13 Jan 2025 00:00:00 +0000</pubDate><guid>https://x3ps.github.io/posts/2025/01/markdown-test/</guid><description>&lt;h2 id="benchmarking-the-support-of-markdown-with-a-comprehensive-checklist">Benchmarking the support of Markdown with a comprehensive checklist&lt;/h2>
-&lt;p>&lt;strong>You&amp;rsquo;re working on a project featuring Markdown?&lt;/strong>&lt;/p>
-&lt;p>Drop &lt;a href="https://raw.githubusercontent.com/RoneoOrg/markdown/main/README.md">the source of this page&lt;/a> wherever you want to test &lt;em>or showcase&lt;/em> the support of Markdown, and check that every single feature is properly rendered.&lt;/p>
-&lt;p>&lt;strong>Table of Contents&lt;/strong>&lt;/p>
-&lt;ul>
-&lt;li>&lt;a href="#basic-formatting">Basic formatting&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#blockquotes">Blockquotes&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#lists">Lists&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#linebreaks">Linebreaks&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#links">Links&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#code-formatting">Code formatting&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#images">Images&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#task-lists">Task lists&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#tables">Tables&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#footnotes">Footnotes&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#definition-list">Definition List&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#headings">Headings&lt;/a>&lt;/li>
-&lt;/ul>
-&lt;h2 id="basic-formatting">Basic formatting&lt;/h2>
-&lt;h3 id="bold-text">&lt;strong>Bold&lt;/strong> text&lt;/h3>
-&lt;p>&lt;strong>Syntax:&lt;/strong>&lt;/p>
-&lt;pre>&lt;code>You can mark some text as bold with **two asterisks**
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on x3ps</title><link>https://x3ps.github.io/posts/</link><description>Recent content in Posts on x3ps</description><generator>Hugo -- gohugo.io</generator><language>ru-ru</language><copyright>2025</copyright><lastBuildDate>Mon, 13 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://x3ps.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Markdown Test</title><link>https://x3ps.github.io/posts/2025/01/markdown-test/</link><pubDate>Mon, 13 Jan 2025 00:00:00 +0000</pubDate><guid>https://x3ps.github.io/posts/2025/01/markdown-test/</guid><description>&lt;h2 id="benchmarking-the-support-of-markdown-with-a-comprehensive-checklist"&gt;Benchmarking the support of Markdown with a comprehensive checklist&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;You&amp;rsquo;re working on a project featuring Markdown?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Drop &lt;a href="https://raw.githubusercontent.com/RoneoOrg/markdown/main/README.md"&gt;the source of this page&lt;/a&gt; wherever you want to test &lt;em&gt;or showcase&lt;/em&gt; the support of Markdown, and check that every single feature is properly rendered.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Table of Contents&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#basic-formatting"&gt;Basic formatting&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#blockquotes"&gt;Blockquotes&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#lists"&gt;Lists&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#linebreaks"&gt;Linebreaks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#links"&gt;Links&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#code-formatting"&gt;Code formatting&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#images"&gt;Images&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#task-lists"&gt;Task lists&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#tables"&gt;Tables&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#footnotes"&gt;Footnotes&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#definition-list"&gt;Definition List&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#headings"&gt;Headings&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="basic-formatting"&gt;Basic formatting&lt;/h2&gt;
+&lt;h3 id="bold-text"&gt;&lt;strong&gt;Bold&lt;/strong&gt; text&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;Syntax:&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;You can mark some text as bold with **two asterisks**
 or __two underscores__.
-&lt;/code>&lt;/pre>
-&lt;p>&lt;strong>Output:&lt;/strong>&lt;/p></description><content type="html"><![CDATA[<h2 id="benchmarking-the-support-of-markdown-with-a-comprehensive-checklist">Benchmarking the support of Markdown with a comprehensive checklist</h2>
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Output:&lt;/strong&gt;&lt;/p&gt;</description><content type="html"><![CDATA[<h2 id="benchmarking-the-support-of-markdown-with-a-comprehensive-checklist">Benchmarking the support of Markdown with a comprehensive checklist</h2>
 <p><strong>You&rsquo;re working on a project featuring Markdown?</strong></p>
 <p>Drop <a href="https://raw.githubusercontent.com/RoneoOrg/markdown/main/README.md">the source of this page</a> wherever you want to test <em>or showcase</em> the support of Markdown, and check that every single feature is properly rendered.</p>
 <p><strong>Table of Contents</strong></p>
@@ -107,13 +107,13 @@ or <strong>two underscores</strong>.</p>
 <h2 id="lists">Lists</h2>
 <h3 id="unordered-list">Unordered list</h3>
 <p>Cant be marked with <code>-</code>, <code>+</code> or <code>*</code></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-markdown" data-lang="markdown"><span style="display:flex;"><span><span style="color:#66d9ef">-</span> First item
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-markdown" data-lang="markdown"><span style="display:flex;"><span><span style="color:#66d9ef">-</span> First item
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> Second item
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> Third item
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-markdown" data-lang="markdown"><span style="display:flex;"><span>+ First item
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-markdown" data-lang="markdown"><span style="display:flex;"><span>+ First item
 </span></span><span style="display:flex;"><span>+ Second item
 </span></span><span style="display:flex;"><span>+ Third item
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-markdown" data-lang="markdown"><span style="display:flex;"><span><span style="color:#66d9ef">*</span> First item
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-markdown" data-lang="markdown"><span style="display:flex;"><span><span style="color:#66d9ef">*</span> First item
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">*</span> Second item
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">*</span> Third item
 </span></span></code></pre></div><p><strong>Output:</strong></p>
@@ -269,30 +269,30 @@ echo &quot;hi&quot;
 <p>Set the language right after the first backticks (for example <code>```html </code>) to get syntax highlighting</p>
 <h4 id="samples">Samples:</h4>
 <h4 id="html">HTML</h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
 </span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;fr&#34;</span> <span style="color:#a6e22e">itemscope</span> <span style="color:#a6e22e">itemtype</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://schema.org/WebPage&#34;</span>&gt;
 </span></span><span style="display:flex;"><span>  &lt;<span style="color:#f92672">head</span>&gt;
 </span></span><span style="display:flex;"><span>  &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;utf-8&#34;</span> /&gt;
 </span></span><span style="display:flex;"><span>  &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
 </span></span><span style="display:flex;"><span>  &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0, maximum-scale=1.0&#34;</span>&gt;
 </span></span></code></pre></div><h4 id="css">CSS</h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-css" data-lang="css"><span style="display:flex;"><span><span style="color:#75715e">/* Comment */</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-css" data-lang="css"><span style="display:flex;"><span><span style="color:#75715e">/* Comment */</span>
 </span></span><span style="display:flex;"><span>.<span style="color:#a6e22e">blog-post</span> <span style="color:#f92672">h2</span><span style="color:#f92672">,</span> <span style="color:#f92672">h3</span> {
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">margin-top</span>: <span style="color:#ae81ff">1.6</span><span style="color:#66d9ef">em</span>;
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">margin-bottom</span>: <span style="color:#ae81ff">0.8</span><span style="color:#66d9ef">em</span>;
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><h4 id="bash">Bash</h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Comment</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Comment</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#f92672">[[</span> ! $system <span style="color:#f92672">=</span>~ Linux|MacOS|BSD <span style="color:#f92672">]]</span>; <span style="color:#66d9ef">then</span>
 </span></span><span style="display:flex;"><span>	echo <span style="color:#e6db74">&#34;This version of bashtop does not support </span>$system<span style="color:#e6db74"> platform.&#34;</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>sudo apt install test
 </span></span></code></pre></div><h4 id="diff">Diff</h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-diff" data-lang="diff"><span style="display:flex;"><span><span style="color:#f92672">- delete
-</span></span></span><span style="display:flex;"><span><span style="color:#f92672"></span><span style="color:#a6e22e">+ add
-</span></span></span><span style="display:flex;"><span><span style="color:#a6e22e"></span><span style="font-weight:bold">! test
-</span></span></span><span style="display:flex;"><span><span style="font-weight:bold"></span># comment
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-diff" data-lang="diff"><span style="display:flex;"><span><span style="color:#f92672">- delete
+</span></span></span><span style="display:flex;"><span><span style="color:#a6e22e">+ add
+</span></span></span><span style="display:flex;"><span><span style="font-weight:bold">! test
+</span></span></span><span style="display:flex;"><span># comment
 </span></span></code></pre></div><h3 id="escaping-with-backslashes">Escaping with backslashes</h3>
 <p>Any ASCII punctuation character may be escaped using a single backslash.</p>
 <p>Example:</p>
@@ -316,7 +316,7 @@ _   underscore
 </code></pre>
 <h2 id="images">Images</h2>
 <h3 id="basic-syntax">Basic syntax</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-markdown" data-lang="markdown"><span style="display:flex;"><span>  ![<span style="color:#f92672">Semantic description of the image</span>](<span style="color:#a6e22e">https://roneo.org/img/ok.png</span>)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-markdown" data-lang="markdown"><span style="display:flex;"><span>  ![<span style="color:#f92672">Semantic description of the image</span>](<span style="color:#a6e22e">https://roneo.org/img/ok.png</span>)
 </span></span></code></pre></div><p><img src="https://roneo.org/img/ok.png" alt="Semantic description of the image"></p>
 <p><strong>Note: The text inside the square brackets is important!</strong></p>
 <p>Screen reader users get informations about the image with this attribute called <code>ALT</code>, for <em>alternative text</em>.</p>

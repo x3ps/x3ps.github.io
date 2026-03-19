@@ -1,35 +1,35 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>x3ps</title><link>https://x3ps.github.io/</link><description>Recent content on x3ps</description><generator>Hugo</generator><language>ru-ru</language><copyright>2025</copyright><lastBuildDate>Mon, 13 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://x3ps.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Markdown Test</title><link>https://x3ps.github.io/posts/2025/01/markdown-test/</link><pubDate>Mon, 13 Jan 2025 00:00:00 +0000</pubDate><guid>https://x3ps.github.io/posts/2025/01/markdown-test/</guid><description>&lt;h2 id="benchmarking-the-support-of-markdown-with-a-comprehensive-checklist">Benchmarking the support of Markdown with a comprehensive checklist&lt;/h2>
-&lt;p>&lt;strong>You&amp;rsquo;re working on a project featuring Markdown?&lt;/strong>&lt;/p>
-&lt;p>Drop &lt;a href="https://raw.githubusercontent.com/RoneoOrg/markdown/main/README.md">the source of this page&lt;/a> wherever you want to test &lt;em>or showcase&lt;/em> the support of Markdown, and check that every single feature is properly rendered.&lt;/p>
-&lt;p>&lt;strong>Table of Contents&lt;/strong>&lt;/p>
-&lt;ul>
-&lt;li>&lt;a href="#basic-formatting">Basic formatting&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#blockquotes">Blockquotes&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#lists">Lists&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#linebreaks">Linebreaks&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#links">Links&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#code-formatting">Code formatting&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#images">Images&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#task-lists">Task lists&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#tables">Tables&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#footnotes">Footnotes&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#definition-list">Definition List&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#headings">Headings&lt;/a>&lt;/li>
-&lt;/ul>
-&lt;h2 id="basic-formatting">Basic formatting&lt;/h2>
-&lt;h3 id="bold-text">&lt;strong>Bold&lt;/strong> text&lt;/h3>
-&lt;p>&lt;strong>Syntax:&lt;/strong>&lt;/p>
-&lt;pre>&lt;code>You can mark some text as bold with **two asterisks**
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>x3ps</title><link>https://x3ps.github.io/</link><description>Recent content on x3ps</description><generator>Hugo</generator><language>ru-ru</language><copyright>2025</copyright><lastBuildDate>Mon, 13 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://x3ps.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Markdown Test</title><link>https://x3ps.github.io/posts/2025/01/markdown-test/</link><pubDate>Mon, 13 Jan 2025 00:00:00 +0000</pubDate><guid>https://x3ps.github.io/posts/2025/01/markdown-test/</guid><description>&lt;h2 id="benchmarking-the-support-of-markdown-with-a-comprehensive-checklist"&gt;Benchmarking the support of Markdown with a comprehensive checklist&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;You&amp;rsquo;re working on a project featuring Markdown?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Drop &lt;a href="https://raw.githubusercontent.com/RoneoOrg/markdown/main/README.md"&gt;the source of this page&lt;/a&gt; wherever you want to test &lt;em&gt;or showcase&lt;/em&gt; the support of Markdown, and check that every single feature is properly rendered.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Table of Contents&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#basic-formatting"&gt;Basic formatting&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#blockquotes"&gt;Blockquotes&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#lists"&gt;Lists&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#linebreaks"&gt;Linebreaks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#links"&gt;Links&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#code-formatting"&gt;Code formatting&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#images"&gt;Images&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#task-lists"&gt;Task lists&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#tables"&gt;Tables&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#footnotes"&gt;Footnotes&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#definition-list"&gt;Definition List&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#headings"&gt;Headings&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="basic-formatting"&gt;Basic formatting&lt;/h2&gt;
+&lt;h3 id="bold-text"&gt;&lt;strong&gt;Bold&lt;/strong&gt; text&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;Syntax:&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;You can mark some text as bold with **two asterisks**
 or __two underscores__.
-&lt;/code>&lt;/pre>
-&lt;p>&lt;strong>Output:&lt;/strong>&lt;/p></description></item><item><title>Обо мне</title><link>https://x3ps.github.io/about/</link><pubDate>Fri, 10 Jan 2025 00:00:00 +0000</pubDate><guid>https://x3ps.github.io/about/</guid><description>&lt;h2 id="привет-">Привет! 👋&lt;/h2>
-&lt;p>Я — x3ps, разработчик, студент, энтузиаст self-hosted решений.&lt;/p>
-&lt;p>Мне 20 лет и я учусь на разработчика в одном вузов моего города.&lt;/p>
-&lt;p>Этот блог часть хобби — здесь я буду расказывать о том как настраивать всякие сложные штуки глазами студента &lt;del>(гика)&lt;/del>.&lt;/p>
-&lt;h3 id="пет-проекты-">Пет-проекты 🧑‍💻&lt;/h3>
-&lt;ol>
-&lt;li>&lt;strong>&lt;a href="https://github.com/x3ps/x3ps.github.io">x3ps.github.io&lt;/a>&lt;/strong>&lt;br>
-Первый из пет проектов который увидел свет.&lt;/li>
-&lt;/ol>
-&lt;p>Если у вас есть вопросы или предложения, свяжитесь со мной через контакты на &lt;a href="https://x3ps.github.io">главной странице&lt;/a>.&lt;/p>
-&lt;p>&lt;del>(Если у вас есть опыт работы с hugo и вы видите что можно улучшить прошу в &lt;a href="https://github.com/x3ps/x3ps.github.io">pull request&lt;/a>)&lt;/del>&lt;/p></description></item></channel></rss>
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Output:&lt;/strong&gt;&lt;/p&gt;</description></item><item><title>Обо мне</title><link>https://x3ps.github.io/about/</link><pubDate>Fri, 10 Jan 2025 00:00:00 +0000</pubDate><guid>https://x3ps.github.io/about/</guid><description>&lt;h2 id="привет-"&gt;Привет! 👋&lt;/h2&gt;
+&lt;p&gt;Я — x3ps, разработчик, студент, энтузиаст self-hosted решений.&lt;/p&gt;
+&lt;p&gt;Мне 20 лет и я учусь на разработчика в одном вузов моего города.&lt;/p&gt;
+&lt;p&gt;Этот блог часть хобби — здесь я буду расказывать о том как настраивать всякие сложные штуки глазами студента &lt;del&gt;(гика)&lt;/del&gt;.&lt;/p&gt;
+&lt;h3 id="пет-проекты-"&gt;Пет-проекты 🧑‍💻&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href="https://github.com/x3ps/x3ps.github.io"&gt;x3ps.github.io&lt;/a&gt;&lt;/strong&gt;&lt;br&gt;
+Первый из пет проектов который увидел свет.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Если у вас есть вопросы или предложения, свяжитесь со мной через контакты на &lt;a href="https://x3ps.github.io"&gt;главной странице&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;del&gt;(Если у вас есть опыт работы с hugo и вы видите что можно улучшить прошу в &lt;a href="https://github.com/x3ps/x3ps.github.io"&gt;pull request&lt;/a&gt;)&lt;/del&gt;&lt;/p&gt;</description></item></channel></rss>

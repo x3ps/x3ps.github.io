@@ -5,14 +5,14 @@ on:
     branches:
       - main
     paths:
-      - 'assets/**'
-      - 'content/**'
-      - 'data/**'
-      - 'i18n/**'
-      - 'layouts/**'
-      - 'static/**'
-      - 'themes/**'
-      - 'hugo.*'
+      - "assets/**"
+      - "content/**"
+      - "data/**"
+      - "i18n/**"
+      - "layouts/**"
+      - "static/**"
+      - "themes/**"
+      - "hugo.*"
 
 jobs:
   build-deploy:

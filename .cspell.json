@@ -1,0 +1,36 @@
+{
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "version": "0.2",
+  "language": "en,ru",
+  "dictionaries": [
+    "en_US",
+    "ru_RU",
+    "custom-words"
+  ],
+  "dictionaryDefinitions": [
+    {
+      "name": "ru_RU",
+      "path": "@cspell/dict-ru_ru/dict/ru_RU.trie"
+    },
+    {
+      "name": "custom-words",
+      "path": ".cspell/custom-words.txt",
+      "addWords": true
+    }
+  ],
+  "ignorePaths": [
+    ".git/**",
+    "node_modules/**",
+    "public/**",
+    "resources/**"
+  ],
+  "ignoreRegExpList": [
+    "/^---[\\s\\S]*?^---/m",
+    "/`[^`]*`/g",
+    "/```[\\s\\S]*?```/g",
+    "/https?:\\/\\/[^\\s]+/g"
+  ],
+  "files": [
+    "content/**/*.md"
+  ]
+}

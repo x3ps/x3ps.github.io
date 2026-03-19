@@ -1,136 +1,171 @@
 {
-    "baseURL": "https://x3ps.dev",
-    "title": "x3ps",
-    "languageCode": "ru-ru",
-    "defaultContentLanguage": "ru",
-    "theme": "hello-friend-ng",
+  "baseURL": "https://x3ps.dev",
+  "title": "x3ps",
+  "defaultContentLanguage": "en",
+  "defaultContentLanguageInSubdir": false,
+  "theme": "hello-friend-ng",
 
-    "PygmentsCodeFences": true,
-    "PygmentsStyle": "monokai",
+  "PygmentsCodeFences": true,
+  "PygmentsStyle": "monokai",
 
-    "copyright": "2025",
+  "copyright": "2025",
 
-    "archetypeDir": "archetypes",
-    "contentDir": "content",
-    "dataDir": "data",
-    "layoutDir": "layouts",
-    "publishDir": "public",
+  "archetypeDir": "archetypes",
+  "contentDir": "content",
+  "dataDir": "data",
+  "layoutDir": "layouts",
+  "publishDir": "public",
 
-    "buildDrafts": false,
-    "buildFuture": false,
-    "buildExpired": false,
-    "canonifyURLs": true,
+  "buildDrafts": false,
+  "buildFuture": false,
+  "buildExpired": false,
+  "canonifyURLs": false,
 
-    "enableRobotsTXT": true,
-    "enableGitInfo": false,
-    "enableEmoji": true,
-    "enableMissingTranslationPlaceholders": false,
-    "disableRSS": false,
-    "disableSitemap": false,
-    "disable404": false,
+  "enableRobotsTXT": true,
+  "enableGitInfo": false,
+  "enableEmoji": true,
+  "enableMissingTranslationPlaceholders": false,
+  "disableRSS": false,
+  "disableSitemap": false,
+  "disable404": false,
 
-    "params": {
-      "description": "Персональный блог и страница обо мне",
-      "keywords": "Блог, Обо мне",
-      "homeSubtitle": "Добро пожаловать на мой блог!",
-      "homeContent": "Добро пожаловать! Вы можете использовать поиск и читать последние статьи ниже.",
-      "recentPostsTitle": "Последние статьи",
-      "searchTitle": "Поиск",
+  "markup": {
+    "goldmark": {
+      "renderer": {
+        "unsafe": true
+      }
+    }
+  },
 
-      "dateform": "2 Jan, 2006",
-      "dateformShort": "2 Jan",
-      "dateformNum": "02-01-2006",
-      "dateformNumTime": "02-01-2006 15:04",
-      
-      "portrait": {
-        "path": "/img/avatar.svg",
-        "alt": "Portrait",
-        "maxWidth": "100px"
+  "languages": {
+    "en": {
+      "languageCode": "en",
+      "languageName": "En",
+      "weight": 1,
+      "params": {
+        "description": "Personal blog and about page",
+        "homeSubtitle": "Welcome to my blog!",
+        "homeContent": "Welcome! You can use the search and read the latest posts below.",
+        "recentPostsTitle": "Recent posts",
+        "searchTitle": "Search"
       },
-
-      "social": [
-        {
-          "name": "email",
-          "url": "mailto:c3ps@proton.me"
-        },
-        {
-          "name": "github",
-          "url": "https://github.com/x3ps"
-        },
-        {
-          "name": "matrix",
-          "url": "https://matrix.to/#/@x3ps:matrix.org"
-        }
-      ],
-      "author": {
-        "name": "x3ps"
-      },
-      "favicon": {
-        "color": {
-          "mask": "#1b1c1d",
-          "msapplication": "#1b1c1d",
-          "theme": "#1b1c1d"
-        }
-      },
-      "footer": {
-        "author": false,
-        "copyright": true,
-        "rss": true,
-        "bottomText": [
-          "Made with <a href=\"https://gohugo.io\">Hugo</a> & <a href=\"https://github.com/rhazdon/hugo-theme-hello-friend-ng\">Hello Friend NG</a>."
+      "menu": {
+        "main": [
+          {
+            "identifier": "about",
+            "name": "About",
+            "url": "/about/"
+          },
+          {
+            "identifier": "posts",
+            "name": "Blog",
+            "url": "/posts/"
+          }
         ]
-      },
-      "logo": {
-        "logoHomeLink": "/",
-        "logoMark": ">",
-        "logoText": "/home/x3ps"
       }
     },
-    "menu": {
-      "main": [
-        {
-          "identifier": "about",
-          "name": "Обо мне",
-          "url": "/about/"
-        },
-        {
-          "identifier": "posts",
-          "name": "Блог",
-          "url": "/posts/"
-        }
+    "ru": {
+      "languageCode": "ru",
+      "languageName": "Ru",
+      "weight": 2,
+      "params": {
+        "description": "Персональный блог и страница обо мне",
+        "homeSubtitle": "Добро пожаловать на мой блог!",
+        "homeContent": "Добро пожаловать! Вы можете использовать поиск и читать последние статьи ниже.",
+        "recentPostsTitle": "Последние статьи",
+        "searchTitle": "Поиск"
+      },
+      "menu": {
+        "main": [
+          {
+            "identifier": "about",
+            "name": "Обо мне",
+            "url": "/about/"
+          },
+          {
+            "identifier": "posts",
+            "name": "Блог",
+            "url": "/posts/"
+          }
+        ]
+      }
+    }
+  },
+
+  "params": {
+    "keywords": "Blog, About",
+
+    "dateform": "2 Jan, 2006",
+    "dateformShort": "2 Jan",
+    "dateformNum": "02-01-2006",
+    "dateformNumTime": "02-01-2006 15:04",
+
+    "portrait": {
+      "path": "/img/avatar.svg",
+      "alt": "Portrait",
+      "maxWidth": "100px"
+    },
+
+    "social": [
+      {
+        "name": "email",
+        "url": "mailto:x3ps@4d2.org"
+      },
+      {
+        "name": "github",
+        "url": "https://github.com/x3ps"
+      },
+      {
+        "name": "matrix",
+        "url": "https://matrix.to/#/@x3ps:4d2.org"
+      }
+    ],
+    "author": {
+      "name": "x3ps"
+    },
+    "favicon": {
+      "color": {
+        "mask": "#1b1c1d",
+        "msapplication": "#1b1c1d",
+        "theme": "#1b1c1d"
+      }
+    },
+    "footer": {
+      "author": false,
+      "copyright": true,
+      "rss": true,
+      "bottomText": [
+        "Made with <a href=\"https://gohugo.io\">Hugo</a> & <a href=\"https://github.com/rhazdon/hugo-theme-hello-friend-ng\">Hello Friend NG</a>."
       ]
+    },
+    "logo": {
+      "logoMark": ">",
+      "logoText": "/home/x3ps"
     },
 
     "enableThemeToggle": true,
-    "enableGlobalLanguageMenu": false,
+    "enableGlobalLanguageMenu": true,
     "disableReadOtherPosts": false,
     "enableSharingButtons": false,
     "justifyContent": false,
-
-    "taxonomies": {
-      "tag": "tags",
-      "category": "categories"
-    },
-
-    "pagination": {
-      "disableAliases": false,
-      "pagerSize": 20,
-      "path": "page"
-    },
-    
-    "blackfriday": {
-      "hrefTargetBlank": true
-    },
-
-    "permalinks": {
-      "posts": "/posts/:year/:month/:title/"
-    },
-
     "customCSS": [
-
+      "https://cdn.jsdelivr.net/npm/flag-icons@7.5.0/css/flag-icons.min.css"
     ],
+    "customJS": []
+  },
 
-    "customJS": [
+  "taxonomies": {
+    "tag": "tags",
+    "category": "categories"
+  },
 
-    ]
+  "pagination": {
+    "disableAliases": false,
+    "pagerSize": 20,
+    "path": "page"
+  },
+
+  "permalinks": {
+    "posts": "/posts/:year/:month/:title/"
   }
+}

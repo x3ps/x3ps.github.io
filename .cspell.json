@@ -10,7 +10,7 @@
   "dictionaryDefinitions": [
     {
       "name": "ru_RU",
-      "path": "@cspell/dict-ru_ru/dict/ru_RU.trie"
+      "path": ".cspell/dict-ru_ru/dict/ru_RU.trie"
     },
     {
       "name": "custom-words",

@@ -3,6 +3,10 @@ default: true
 # Line length - disable for blog posts which may have long lines
 MD013: false
 
+# Hard tabs - allow in code blocks (fstab, system configs legitimately use tabs)
+MD010:
+  code_blocks: false
+
 # Inline HTML - disable as Hugo shortcodes may use HTML
 MD033: false
 

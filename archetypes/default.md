@@ -10,12 +10,12 @@ tags:
   - Tag-Example
 ---
 
-Напишите здесь текст вашего поста. Добавьте структурированные заголовки и контент.
+Write your post content here...
 
-## Заголовок 1
+## Section 1
 
-Ваш контент...
+Your content...
 
-## Заголовок 2
+## Section 2
 
-Ваш контент...
+Your content...

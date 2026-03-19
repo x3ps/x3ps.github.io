@@ -1,0 +1,34 @@
+name: Lint
+
+on:
+  push:
+    paths:
+      - 'content/**'
+      - '.markdownlint.yaml'
+      - '.cspell.json'
+      - '.cspell/**'
+  pull_request:
+    paths:
+      - 'content/**'
+      - '.markdownlint.yaml'
+      - '.cspell.json'
+      - '.cspell/**'
+
+jobs:
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DavidAnson/markdownlint-cli2-action@v19
+        with:
+          globs: 'content/**/*.md'
+
+  spellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: streetsidesoftware/cspell-action@v6
+        with:
+          files: 'content/**/*.md'
+          config: '.cspell.json'
+          strict: false

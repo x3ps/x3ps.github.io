@@ -2,7 +2,7 @@
 *.log
 *.tmp
 *.swp
-*.lock
+.hugo_build.lock
 
 # Hugo публичный каталог (сгенерированный)
 public/
@@ -26,3 +26,7 @@ vendor/
 hugo.exe
 hugo.dms
 hugo.zip
+
+# AI tools
+.claude
+

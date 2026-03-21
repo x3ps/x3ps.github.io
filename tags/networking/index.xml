@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Networking on x3ps</title><link>https://x3ps.dev/tags/networking/</link><description>Recent content in Networking on x3ps</description><generator>Hugo</generator><language>en</language><copyright>2025</copyright><lastBuildDate>Thu, 19 Mar 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://x3ps.dev/tags/networking/index.xml" rel="self" type="application/rss+xml"/><item><title>Writing a Go Library for Reticulum: go-rns-pipe</title><link>https://x3ps.dev/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/</link><pubDate>Thu, 19 Mar 2026 00:00:00 +0000</pubDate><guid>https://x3ps.dev/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/</guid><description>&lt;h2 id="what-is-reticulum-and-why-i-needed-go"&gt;What is Reticulum and why I needed Go&lt;/h2&gt;
+&lt;p&gt;&lt;a href="https://reticulum.network/"&gt;Reticulum Network Stack&lt;/a&gt; is a cryptographic network stack designed
+to work under conditions of low bandwidth and unreliable links. The key idea: abstraction over
+physical transport. Reticulum can operate over LoRa, TCP, UDP, serial ports — and through
+PipeInterface, which is the subject of this article.&lt;/p&gt;
+&lt;p&gt;PipeInterface lets you launch an arbitrary process and communicate with rnsd via stdin/stdout. The
+rnsd daemon acts as the &amp;ldquo;server&amp;rdquo;, and your process acts as the transport. Data flows in both
+directions as HDLC frames. The reference implementation is written in Python (&lt;code&gt;PipeInterface.py&lt;/code&gt;),
+but I needed Go.&lt;/p&gt;</description></item></channel></rss>

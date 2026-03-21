@@ -1,1 +1,333 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Blog on x3ps</title><link>https://x3ps.dev/posts/</link><description>Recent content in Blog on x3ps</description><generator>Hugo -- gohugo.io</generator><language>en</language><copyright>2025</copyright><atom:link href="https://x3ps.dev/posts/index.xml" rel="self" type="application/rss+xml"/></channel></rss>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Blog on x3ps</title><link>https://x3ps.dev/posts/</link><description>Recent content in Blog on x3ps</description><generator>Hugo -- gohugo.io</generator><language>en</language><copyright>2025</copyright><lastBuildDate>Thu, 19 Mar 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://x3ps.dev/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Writing a Go Library for Reticulum: go-rns-pipe</title><link>https://x3ps.dev/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/</link><pubDate>Thu, 19 Mar 2026 00:00:00 +0000</pubDate><guid>https://x3ps.dev/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/</guid><description>&lt;h2 id="what-is-reticulum-and-why-i-needed-go"&gt;What is Reticulum and why I needed Go&lt;/h2&gt;
+&lt;p&gt;&lt;a href="https://reticulum.network/"&gt;Reticulum Network Stack&lt;/a&gt; is a cryptographic network stack designed
+to work under conditions of low bandwidth and unreliable links. The key idea: abstraction over
+physical transport. Reticulum can operate over LoRa, TCP, UDP, serial ports — and through
+PipeInterface, which is the subject of this article.&lt;/p&gt;
+&lt;p&gt;PipeInterface lets you launch an arbitrary process and communicate with rnsd via stdin/stdout. The
+rnsd daemon acts as the &amp;ldquo;server&amp;rdquo;, and your process acts as the transport. Data flows in both
+directions as HDLC frames. The reference implementation is written in Python (&lt;code&gt;PipeInterface.py&lt;/code&gt;),
+but I needed Go.&lt;/p&gt;</description><content type="html"><![CDATA[<h2 id="what-is-reticulum-and-why-i-needed-go">What is Reticulum and why I needed Go</h2>
+<p><a href="https://reticulum.network/">Reticulum Network Stack</a> is a cryptographic network stack designed
+to work under conditions of low bandwidth and unreliable links. The key idea: abstraction over
+physical transport. Reticulum can operate over LoRa, TCP, UDP, serial ports — and through
+PipeInterface, which is the subject of this article.</p>
+<p>PipeInterface lets you launch an arbitrary process and communicate with rnsd via stdin/stdout. The
+rnsd daemon acts as the &ldquo;server&rdquo;, and your process acts as the transport. Data flows in both
+directions as HDLC frames. The reference implementation is written in Python (<code>PipeInterface.py</code>),
+but I needed Go.</p>
+<p>The reason goes deeper than &ldquo;I don&rsquo;t want to pull in a Python runtime&rdquo; (though that&rsquo;s part of it
+too). The goal was to make a library <strong>independent of the implementation</strong>: not tied to Python,
+usable as a building block for any Reticulum implementation.</p>
+<p>Right now Reticulum exists only as the reference Python implementation, but Go and Rust
+implementations are actively being developed. PipeInterface is a natural seam: any language that
+can speak HDLC over stdin/stdout can connect to rnsd without changes to the daemon itself. It was
+with that future in mind that <a href="https://github.com/x3ps/go-rns-pipe">go-rns-pipe</a> was designed.</p>
+<h2 id="the-task">The task</h2>
+<p>rnsd launches a child process using a command from the config:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-ini" data-lang="ini"><span style="display:flex;"><span><span style="color:#66d9ef">[interfaces]</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">[[My Go Transport]]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">type</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">PipeInterface
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    interface_enabled = Yes
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    command = /usr/local/bin/my-transport
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    respawn_delay = 5</span>
+</span></span></code></pre></div><p>The child process communicates with rnsd via stdin/stdout:</p>
+<ul>
+<li><strong>stdin</strong> — incoming stream of HDLC frames from rnsd (packets to be sent outbound)</li>
+<li><strong>stdout</strong> — outgoing stream of HDLC frames to rnsd (received packets)</li>
+</ul>
+<p>The protocol is simple, but you need to reproduce the HDLC framing from Python exactly — otherwise
+rnsd won&rsquo;t understand a single packet.</p>
+<h2 id="architecture">Architecture</h2>
+<p>The library consists of six components:</p>
+<pre tabindex="0"><code>         stdin
+           │
+           ▼
+      ┌─────────┐   packets   ┌──────────────────┐
+      │ Decoder │ ──────────► │                  │
+      └─────────┘             │    Interface     │ ◄── OnSend callback
+                              │                  │
+      ┌─────────┐   frame     │  pipeOnline      │ ◄── Start()/readLoop()
+      │ Encoder │ ◄────────── │  transportOnline │ ◄── SetOnline(bool)
+      └─────────┘             └──────────────────┘
+           │                          │
+           ▼                     Reconnector
+         stdout                        │
+                                  Config / slog
+</code></pre><ul>
+<li><strong><code>Interface</code></strong> — the central type. Orchestrates reading/writing, manages the two-bit <code>online</code>
+state, invokes callbacks.</li>
+<li><strong><code>Encoder</code></strong> — wraps an arbitrary byte slice in an HDLC frame.</li>
+<li><strong><code>Decoder</code></strong> — a streaming state machine. Implements <code>io.Writer</code>, internally holds a channel of
+ready packets.</li>
+<li><strong><code>Reconnector</code></strong> — manages reconnection logic: fixed delay or exponential backoff.</li>
+<li><strong><code>Config</code></strong> — configuration with sensible defaults matching <code>PipeInterface.py</code>.</li>
+<li><strong><code>SetOnline(bool)</code></strong> — external signal about the state of the network side of the transport.</li>
+</ul>
+<p>Data flow when receiving a packet from rnsd:</p>
+<ol>
+<li><code>io.Copy</code> in a goroutine reads bytes from <code>config.Stdin</code> and writes them into <code>Decoder</code>.</li>
+<li><code>Decoder.Write</code> runs each byte through the state machine.</li>
+<li>The finished packet is placed in a buffered channel <code>packets</code>.</li>
+<li>The main <code>select</code> loop in <code>readLoop</code> reads from the channel and invokes the <code>OnSend</code> callback.</li>
+</ol>
+<p>Sending a packet to rnsd — <code>iface.Receive(pkt)</code> — encodes it via <code>Encoder</code> and writes it to
+<code>config.Stdout</code>.</p>
+<h3 id="setonline-two-bit-state">SetOnline: two-bit state</h3>
+<p><code>Interface</code> manages two independent online flags:</p>
+<ul>
+<li><strong><code>pipeOnline</code></strong> — the rnsd side is alive. Set to <code>true</code> on successful <code>Start()</code>, to <code>false</code>
+on EOF or <code>readLoop</code> error.</li>
+<li><strong><code>transportOnline</code></strong> — the network side is alive. Controlled by calling <code>SetOnline(bool)</code> from
+the transport.</li>
+</ul>
+<p>Effective state: <code>pipeOnline &amp;&amp; transportOnline</code>. The <code>onStatus</code> callback fires only on real
+transitions, so rnsd doesn&rsquo;t receive spurious notifications.</p>
+<p>Typical scenario for a TCP transport:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// TCP connection lost — signal that the network side is unavailable</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">TCPTransport</span>) <span style="color:#a6e22e">onDisconnect</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">iface</span>.<span style="color:#a6e22e">SetOnline</span>(<span style="color:#66d9ef">false</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// ...reconnection logic...</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// TCP connection restored</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">TCPTransport</span>) <span style="color:#a6e22e">onConnect</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">iface</span>.<span style="color:#a6e22e">SetOnline</span>(<span style="color:#66d9ef">true</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>This lets rnsd correctly display the interface state even when the pipe to rnsd is alive but the
+network side is temporarily unavailable.</p>
+<h2 id="hdlc-framing">HDLC framing</h2>
+<h3 id="frame-structure">Frame structure</h3>
+<p>HDLC (High-Level Data Link Control) in a simplified form, similar to PPP:</p>
+<pre tabindex="0"><code>0x7E | escaped_data | 0x7E
+</code></pre><p>The byte <code>0x7E</code> is the start/end frame flag. If the payload contains <code>0x7E</code> or <code>0x7D</code>
+(the escape character), they must be escaped:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Original byte</th>
+          <th>Replacement</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>0x7D</code></td>
+          <td><code>0x7D 0x5D</code></td>
+      </tr>
+      <tr>
+          <td><code>0x7E</code></td>
+          <td><code>0x7D 0x5E</code></td>
+      </tr>
+  </tbody>
+</table>
+<p>Rule: escape <code>0x7D</code> first, then <code>0x7E</code>. Order matters — otherwise you&rsquo;d double-escape.</p>
+<h3 id="encoder">Encoder</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">const</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">HDLCFlag</span>    = <span style="color:#ae81ff">0x7E</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">HDLCEscape</span>  = <span style="color:#ae81ff">0x7D</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">HDLCEscMask</span> = <span style="color:#ae81ff">0x20</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">e</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Encoder</span>) <span style="color:#a6e22e">Encode</span>(<span style="color:#a6e22e">packet</span> []<span style="color:#66d9ef">byte</span>) []<span style="color:#66d9ef">byte</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">out</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">byte</span>, <span style="color:#ae81ff">0</span>, len(<span style="color:#a6e22e">packet</span>)<span style="color:#f92672">+</span>len(<span style="color:#a6e22e">packet</span>)<span style="color:#f92672">/</span><span style="color:#ae81ff">4</span><span style="color:#f92672">+</span><span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">out</span> = append(<span style="color:#a6e22e">out</span>, <span style="color:#a6e22e">HDLCFlag</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">b</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">packet</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">b</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">HDLCEscape</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">out</span> = append(<span style="color:#a6e22e">out</span>, <span style="color:#a6e22e">HDLCEscape</span>, <span style="color:#a6e22e">HDLCEscape</span>^<span style="color:#a6e22e">HDLCEscMask</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">HDLCFlag</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">out</span> = append(<span style="color:#a6e22e">out</span>, <span style="color:#a6e22e">HDLCEscape</span>, <span style="color:#a6e22e">HDLCFlag</span>^<span style="color:#a6e22e">HDLCEscMask</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">default</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">out</span> = append(<span style="color:#a6e22e">out</span>, <span style="color:#a6e22e">b</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">out</span> = append(<span style="color:#a6e22e">out</span>, <span style="color:#a6e22e">HDLCFlag</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">out</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>HDLCEscape ^ HDLCEscMask</code> = <code>0x7D ^ 0x20</code> = <code>0x5D</code>. <code>HDLCFlag ^ HDLCEscMask</code> = <code>0x7E ^ 0x20</code> = <code>0x5E</code>.
+These are exactly the values expected by <code>PipeInterface.py</code>.</p>
+<h3 id="decoder-state-machine">Decoder: state machine</h3>
+<p>The decoder is streaming. It implements <code>io.Writer</code> so it can be passed directly to <code>io.Copy</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">d</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Decoder</span>) <span style="color:#a6e22e">Write</span>(<span style="color:#a6e22e">b</span> []<span style="color:#66d9ef">byte</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">mu</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">mu</span>.<span style="color:#a6e22e">Unlock</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">byte_</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">b</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">inFrame</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">byte_</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">HDLCFlag</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// End of frame — deliver the packet</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">pkt</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">byte</span>, len(<span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">buf</span>))
+</span></span><span style="display:flex;"><span>            copy(<span style="color:#a6e22e">pkt</span>, <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">buf</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">select</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">packets</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">pkt</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">default</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">dropped</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#ae81ff">1</span>) <span style="color:#75715e">// channel full — increment drop counter</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">buf</span> = <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">buf</span>[:<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">inFrame</span> = <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">byte_</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">HDLCFlag</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// Start of frame</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">inFrame</span> = <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">buf</span> = <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">buf</span>[:<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">inFrame</span> <span style="color:#f92672">&amp;&amp;</span> len(<span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">buf</span>) &lt; <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">hwMTU</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">byte_</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">HDLCEscape</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">escape</span> = <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">escape</span> {
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">byte_</span> {
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">HDLCFlag</span> ^ <span style="color:#a6e22e">HDLCEscMask</span>:
+</span></span><span style="display:flex;"><span>                        <span style="color:#a6e22e">byte_</span> = <span style="color:#a6e22e">HDLCFlag</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">HDLCEscape</span> ^ <span style="color:#a6e22e">HDLCEscMask</span>:
+</span></span><span style="display:flex;"><span>                        <span style="color:#a6e22e">byte_</span> = <span style="color:#a6e22e">HDLCEscape</span>
+</span></span><span style="display:flex;"><span>                    }
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">escape</span> = <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">buf</span> = append(<span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">buf</span>, <span style="color:#a6e22e">byte_</span>)
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> len(<span style="color:#a6e22e">b</span>), <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Three states: outside a frame, inside a frame, waiting for escape. The logic exactly reproduces
+<code>readLoop</code> from <code>PipeInterface.py</code> — including the fact that an empty frame <code>0x7E 0x7E</code> delivers
+an empty packet (Python does the same, calling <code>process_incoming(b&quot;&quot;)</code> without a length check).</p>
+<p>The maximum buffer size is bounded by <code>hwMTU</code> (default 1064 bytes, as in <code>PipeInterface.py#L72</code>).
+Packets that don&rsquo;t fit in the buffered channel are counted as dropped — the <code>DroppedPackets()</code>
+counter helps monitor load.</p>
+<h2 id="reconnection">Reconnection</h2>
+<h3 id="two-modes">Two modes</h3>
+<p>The default mode is <strong>fixed delay</strong> — exactly like <code>respawn_delay</code> in Python:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">reconnector</span>) <span style="color:#a6e22e">backoff</span>(<span style="color:#a6e22e">attempt</span> <span style="color:#66d9ef">int</span>) <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">attempt</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span> <span style="color:#75715e">// first attempt without delay</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">exponentialBackoff</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">baseDelay</span> <span style="color:#75715e">// fixed delay</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// exponential backoff with ±25% jitter, 60s ceiling</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">exp</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">math</span>.<span style="color:#a6e22e">Pow</span>(<span style="color:#ae81ff">2</span>, float64(<span style="color:#a6e22e">attempt</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>))
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">delayF</span> <span style="color:#f92672">:=</span> float64(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">baseDelay</span>) <span style="color:#f92672">*</span> <span style="color:#a6e22e">exp</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">delayF</span> &gt; float64(<span style="color:#ae81ff">60</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">delayF</span> = float64(<span style="color:#ae81ff">60</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#a6e22e">delayF</span> <span style="color:#f92672">*</span> (<span style="color:#ae81ff">0.75</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Float64</span>()<span style="color:#f92672">*</span><span style="color:#ae81ff">0.5</span>))
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>For long-running services that manage reconnection themselves, there&rsquo;s <code>ExponentialBackoff: true</code>.</p>
+<h3 id="errpipeclosed">ErrPipeClosed</h3>
+<p>There&rsquo;s a nuance: if the Go process is launched as a child of rnsd, then upon receiving EOF on
+stdin it should exit rather than reconnect — rnsd will restart the process itself after
+<code>respawn_delay</code>.</p>
+<p>For this there&rsquo;s <code>ExitOnEOF: true</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">iface</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rnspipe</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">rnspipe</span>.<span style="color:#a6e22e">Config</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ExitOnEOF</span>: <span style="color:#66d9ef">true</span>, <span style="color:#75715e">// return ErrPipeClosed instead of reconnecting</span>
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><p>With <code>ExitOnEOF=true</code> and a clean EOF, <code>Start</code> returns <code>ErrPipeClosed</code> immediately, without
+waiting for <code>ReconnectDelay</code>. This lets the process exit quickly and signal rnsd to restart.</p>
+<h2 id="concurrency">Concurrency</h2>
+<h3 id="syncrwmutex-for-state">sync.RWMutex for state</h3>
+<p>State flags and callbacks are protected by <code>sync.RWMutex</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Interface</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mu</span>              <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">RWMutex</span> <span style="color:#75715e">// protects: pipeOnline, transportOnline, started, onSend, onStatus, cancelFn</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">writeMu</span>         <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Mutex</span>   <span style="color:#75715e">// serializes writes to Stdout in Receive()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pipeOnline</span>      <span style="color:#66d9ef">bool</span>         <span style="color:#75715e">// pipe to rnsd is alive (Start/readLoop)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">transportOnline</span> <span style="color:#66d9ef">bool</span>         <span style="color:#75715e">// network side is alive (SetOnline)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// ...</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>writeMu</code> is separate — so multiple goroutines can concurrently call <code>Receive()</code> without conflicts
+on writing to stdout.</p>
+<h3 id="atomic-metric-counters">Atomic metric counters</h3>
+<p>Traffic is counted without locks:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">packetsSent</span>     <span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">Uint64</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">packetsReceived</span> <span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">Uint64</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">bytesSent</span>       <span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">Uint64</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">bytesReceived</span>   <span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">Uint64</span>
+</span></span></code></pre></div><p><code>atomic.Uint64</code> from the standard library — safe to read from any number of goroutines
+without <code>sync.Mutex</code>.</p>
+<h3 id="goroutine-lifecycle">Goroutine lifecycle</h3>
+<p><code>readLoop</code> launches one goroutine for <code>io.Copy</code>. On context cancellation, we need to unblock
+it — if <code>Stdin</code> implements <code>io.Closer</code>, we close it and wait for completion:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Done</span>():
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">iface</span>.<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">Stdin</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Stdin</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">closer</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">iface</span>.<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">Stdin</span>.(<span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">Closer</span>); <span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">closer</span>.<span style="color:#a6e22e">Close</span>()
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">readErr</span> <span style="color:#75715e">// wait for goroutine</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span></code></pre></div><p><code>os.Stdin</code> is intentionally excluded from this path — closing it would affect the entire process.
+If <code>Stdin</code> doesn&rsquo;t implement <code>io.Closer</code>, a warning about a potential goroutine leak is logged.</p>
+<h2 id="zero-dependencies">Zero dependencies</h2>
+<p>The core library uses only the Go standard library — <code>go.sum</code> is empty for the main module. This
+is a deliberate decision:</p>
+<p><strong>Pros:</strong></p>
+<ul>
+<li>No diamond-dependency problems when embedded in another project</li>
+<li>Builds in any environment without <code>go get</code></li>
+<li>Smaller supply-chain attack surface</li>
+</ul>
+<p><strong>Cons:</strong></p>
+<ul>
+<li>No <code>zerolog</code> or <code>zap</code> — logging via the standard <code>log/slog</code></li>
+<li>No ready-made <code>backoff</code> package — implemented manually (it&rsquo;s small)</li>
+</ul>
+<p>Parity tests require only <code>python3</code> in PATH — the script is embedded directly in the test as a
+constant, without any third-party Python packages.</p>
+<h2 id="testing">Testing</h2>
+<h3 id="unit-tests">Unit tests</h3>
+<p>Basic scenarios in <code>pipe_test.go</code>: encode/decode, byte stuffing, empty packets, metrics,
+goroutine races. Tests with <code>sync.Mutex</code>/<code>atomic</code> are run with the race detector:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>make test
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># equivalent to: go test -race ./...</span>
+</span></span></code></pre></div><h3 id="parity-tests-with-python">Parity tests with Python</h3>
+<p>The most important part — verifying that our HDLC encoding is compatible with the reference
+implementation. In <code>parity_test.go</code> (build tag <code>integration</code>) the Go encoder sends frames to a
+Python script that decodes them:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestHDLCParityPython</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">payload</span> <span style="color:#f92672">:=</span> []byte(<span style="color:#e6db74">&#34;hello-parity-test&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">enc</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">rnspipe</span>.<span style="color:#a6e22e">Encoder</span>{}
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">frame</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">enc</span>.<span style="color:#a6e22e">Encode</span>(<span style="color:#a6e22e">payload</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">cmd</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">exec</span>.<span style="color:#a6e22e">Command</span>(<span style="color:#a6e22e">python</span>, <span style="color:#a6e22e">tmp</span>.<span style="color:#a6e22e">Name</span>())
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">cmd</span>.<span style="color:#a6e22e">Stdin</span> = <span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">NewReader</span>(<span style="color:#a6e22e">frame</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">out</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cmd</span>.<span style="color:#a6e22e">Output</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">Equal</span>(<span style="color:#a6e22e">out</span>, <span style="color:#a6e22e">payload</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Python decoded %q, want %q&#34;</span>, <span style="color:#a6e22e">out</span>, <span style="color:#a6e22e">payload</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>There&rsquo;s also the reverse test: Python encodes a frame, Go decodes it. And a full round-trip:
+Go → Python → Go with binary payloads (<code>0x7E</code>, <code>0x7D</code>, and their combinations).</p>
+<h2 id="plans">Plans</h2>
+<p>The PipeInterface abstraction makes adding new transports an almost mechanical task: implement
+reading/writing packets through the chosen channel, call <code>SetOnline</code> based on connection state —
+and that&rsquo;s it.</p>
+<p>Several transports are planned:</p>
+<p><strong>Email transport</strong> — tunneling Reticulum packets over SMTP/IMAP. Each packet is wrapped in an
+email message, sent to a mail server, and read from the other side. This enables circumventing
+censorship in regions where mainstream internet traffic is filtered but email still works.</p>
+<p><strong>S3 transport</strong> — object storage (AWS S3, MinIO, and similar) as an asynchronous packet relay.
+Packets are written as objects with a known naming scheme; the receiver periodically reads and
+deletes them. Suitable for store-and-forward over heavily filtered connections or asymmetric links.</p>
+<p>The broader idea: PipeInterface is not just a convenient way to write a transport for rnsd, but
+also a tool for implementing non-standard channels that would never make it into the official
+Python code.</p>
+<h2 id="summary">Summary</h2>
+<p><strong>What was built:</strong></p>
+<ul>
+<li>A Python-compatible implementation of the PipeInterface protocol in pure Go</li>
+<li>Two reconnection modes (fixed delay and exponential backoff with jitter)</li>
+<li>A streaming HDLC decoder as an <code>io.Writer</code> — connects directly to <code>io.Copy</code></li>
+<li>Metrics via atomic counters</li>
+<li>Two-bit online state: <code>pipeOnline</code> (rnsd side) + <code>transportOnline</code> (network side)</li>
+</ul>
+<p><strong>What I learned:</strong></p>
+<p>Exactly reproducing the behaviour of another implementation is its own challenge. The protocol
+seems simple: flag byte, escape sequences. But details like &ldquo;an empty frame is also delivered&rdquo; or
+&ldquo;escape ESC before FLAG&rdquo; only surface through careful code reading and parity tests.</p>
+<p>The <code>ExitOnEOF</code>/<code>ErrPipeClosed</code> isolation for child-process mode is also non-obvious at first —
+you need to understand the rnsd lifecycle before you can design the right interface.</p>
+<p><strong>Project status:</strong></p>
+<p>The library is stable, well-tested, and used in my own projects. Source code on GitHub:
+<a href="https://github.com/x3ps/go-rns-pipe">x3ps/go-rns-pipe</a>. Version — v0.1.1. License — MIT.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go get github.com/x3ps/go-rns-pipe@v0.1.1
+</span></span></code></pre></div>]]></content></item></channel></rss>

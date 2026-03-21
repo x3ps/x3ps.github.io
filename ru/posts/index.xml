@@ -1,4 +1,4 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Блог on x3ps</title><link>https://x3ps.dev/ru/posts/</link><description>Recent content in Блог on x3ps</description><generator>Hugo -- gohugo.io</generator><language>ru</language><copyright>2025</copyright><lastBuildDate>Thu, 19 Mar 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://x3ps.dev/ru/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Пишем Go-библиотеку для Reticulum: go-rns-pipe</title><link>https://x3ps.dev/ru/posts/2026/03/%D0%BF%D0%B8%D1%88%D0%B5%D0%BC-go-%D0%B1%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA%D1%83-%D0%B4%D0%BB%D1%8F-reticulum-go-rns-pipe/</link><pubDate>Thu, 19 Mar 2026 00:00:00 +0000</pubDate><guid>https://x3ps.dev/ru/posts/2026/03/%D0%BF%D0%B8%D1%88%D0%B5%D0%BC-go-%D0%B1%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA%D1%83-%D0%B4%D0%BB%D1%8F-reticulum-go-rns-pipe/</guid><description>&lt;h2 id="что-такое-reticulum-и-зачем-мне-понадобился-go"&gt;Что такое Reticulum и зачем мне понадобился Go&lt;/h2&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Блог on x3ps</title><link>https://x3ps.dev/ru/posts/</link><description>Recent content in Блог on x3ps</description><generator>Hugo -- gohugo.io</generator><language>ru</language><copyright>2025</copyright><lastBuildDate>Thu, 19 Mar 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://x3ps.dev/ru/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Пишем Go-библиотеку для Reticulum: go-rns-pipe</title><link>https://x3ps.dev/ru/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/</link><pubDate>Thu, 19 Mar 2026 00:00:00 +0000</pubDate><guid>https://x3ps.dev/ru/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/</guid><description>&lt;h2 id="что-такое-reticulum-и-зачем-мне-понадобился-go"&gt;Что такое Reticulum и зачем мне понадобился Go&lt;/h2&gt;
 &lt;p&gt;&lt;a href="https://reticulum.network/"&gt;Reticulum Network Stack&lt;/a&gt; — это криптографический сетевой стек, спроектированный
 для работы в условиях низкой пропускной способности и ненадёжных каналов. Ключевая идея: абстракция над
 физическим транспортом. Reticulum умеет работать поверх LoRa, TCP, UDP, последовательных портов — и через
@@ -13,8 +13,13 @@ PipeInterface, которому посвящена эта статья.</p>
 <p>PipeInterface позволяет запустить произвольный процесс и общаться с rnsd через stdin/stdout. Демон rnsd
 выступает как «сервер», а ваш процесс — как транспорт. Данные передаются в обе стороны HDLC-фреймами.
 Эталонная реализация написана на Python (<code>PipeInterface.py</code>), но мне понадобился Go.</p>
-<p>Причина простая: я хочу писать сетевые инструменты поверх Reticulum на Go, не тащя в зависимости
-Python-рантайм. Так появился <a href="https://github.com/x3ps/go-rns-pipe">go-rns-pipe</a>.</p>
+<p>Причина глубже, чем просто «не хочу тащить Python-рантайм» (хотя и это тоже). Задача была сделать
+библиотеку <strong>независимой от реализации</strong>: не привязанной к Python, пригодной как строительный блок
+для любой реализации Reticulum.</p>
+<p>Сейчас Reticulum существует только как эталонная Python-реализация, но активно разрабатываются
+реализации на Go и Rust. PipeInterface — это естественный шов: любой язык, умеющий говорить
+HDLC поверх stdin/stdout, может подключиться к rnsd без изменений в самом демоне. Именно с этим
+будущим в голове проектировался <a href="https://github.com/x3ps/go-rns-pipe">go-rns-pipe</a>.</p>
 <h2 id="задача">Задача</h2>
 <p>rnsd запускает дочерний процесс командой из конфига:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-ini" data-lang="ini"><span style="display:flex;"><span><span style="color:#66d9ef">[interfaces]</span>
@@ -31,29 +36,30 @@ Python-рантайм. Так появился <a href="https://github.com/x3ps/
 <p>Протокол простой, но нужно точно воспроизвести HDLC-фреймирование из Python — иначе rnsd не поймёт
 ни одного пакета.</p>
 <h2 id="архитектура">Архитектура</h2>
-<p>Библиотека состоит из пяти компонентов:</p>
+<p>Библиотека состоит из шести компонентов:</p>
 <pre tabindex="0"><code>         stdin
            │
            ▼
-      ┌─────────┐    пакеты    ┌──────────┐
-      │ Decoder │ ──────────►  │          │
-      └─────────┘              │ Interface│ ◄── OnSend callback
-                               │          │
-      ┌─────────┐   фрейм      │          │
-      │ Encoder │ ◄──────────  │          │
-      └─────────┘              └──────────┘
-           │                        │
-           ▼                   Reconnector
-         stdout                     │
-                               Config / slog
+      ┌─────────┐    пакеты    ┌──────────────────┐
+      │ Decoder │ ──────────►  │                  │
+      └─────────┘              │    Interface     │ ◄── OnSend callback
+                               │                  │
+      ┌─────────┐   фрейм      │  pipeOnline      │ ◄── Start()/readLoop()
+      │ Encoder │ ◄──────────  │  transportOnline │ ◄── SetOnline(bool)
+      └─────────┘              └──────────────────┘
+           │                          │
+           ▼                     Reconnector
+         stdout                        │
+                                  Config / slog
 </code></pre><ul>
-<li><strong><code>Interface</code></strong> — центральный тип. Оркестрирует чтение/запись, управляет состоянием <code>online</code>,
-вызывает коллбэки.</li>
+<li><strong><code>Interface</code></strong> — центральный тип. Оркестрирует чтение/запись, управляет двухбитным состоянием
+<code>online</code>, вызывает коллбэки.</li>
 <li><strong><code>Encoder</code></strong> — оборачивает произвольный байтовый срез в HDLC-фрейм.</li>
 <li><strong><code>Decoder</code></strong> — потоковый автомат состояний. Реализует <code>io.Writer</code>, внутри хранит канал готовых пакетов.</li>
 <li><strong><code>Reconnector</code></strong> — управляет логикой повторных подключений: фиксированная задержка или экспоненциальный
 бэкофф.</li>
 <li><strong><code>Config</code></strong> — конфигурация с разумными дефолтами, совпадающими с <code>PipeInterface.py</code>.</li>
+<li><strong><code>SetOnline(bool)</code></strong> — внешний сигнал о состоянии сетевой стороны транспорта.</li>
 </ul>
 <p>Поток данных при получении пакета от rnsd:</p>
 <ol>
@@ -63,6 +69,28 @@ Python-рантайм. Так появился <a href="https://github.com/x3ps/
 <li>Основной <code>select</code>-цикл в <code>readLoop</code> читает из канала и вызывает <code>OnSend</code>-коллбэк.</li>
 </ol>
 <p>Отправка пакета к rnsd — <code>iface.Receive(pkt)</code> — кодирует его через <code>Encoder</code> и пишет в <code>config.Stdout</code>.</p>
+<h3 id="setonline-двухбитное-состояние">SetOnline: двухбитное состояние</h3>
+<p><code>Interface</code> управляет двумя независимыми флагами online:</p>
+<ul>
+<li><strong><code>pipeOnline</code></strong> — rnsd-сторона жива. Выставляется в <code>true</code> при успешном <code>Start()</code>, в <code>false</code>
+при EOF или ошибке <code>readLoop</code>.</li>
+<li><strong><code>transportOnline</code></strong> — сетевая сторона жива. Управляется вызовом <code>SetOnline(bool)</code> из транспорта.</li>
+</ul>
+<p>Эффективное состояние: <code>pipeOnline &amp;&amp; transportOnline</code>. Коллбэк <code>onStatus</code> срабатывает только при
+реальных переходах, чтобы rnsd не получал лишних уведомлений.</p>
+<p>Типичный сценарий для TCP-транспорта:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// TCP-соединение потеряно — сообщаем, что сетевая сторона недоступна</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">TCPTransport</span>) <span style="color:#a6e22e">onDisconnect</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">iface</span>.<span style="color:#a6e22e">SetOnline</span>(<span style="color:#66d9ef">false</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// ...логика переподключения...</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// TCP-соединение восстановлено</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">TCPTransport</span>) <span style="color:#a6e22e">onConnect</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">iface</span>.<span style="color:#a6e22e">SetOnline</span>(<span style="color:#66d9ef">true</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Это позволяет rnsd корректно отображать состояние интерфейса даже если pipe к rnsd жив, но
+сетевая сторона временно недоступна.</p>
 <h2 id="hdlc-фреймирование">HDLC-фреймирование</h2>
 <h3 id="как-устроен-фрейм">Как устроен фрейм</h3>
 <p>HDLC (High-Level Data Link Control) в упрощённом виде, похожем на PPP:</p>
@@ -193,11 +221,12 @@ Python-рантайм. Так появился <a href="https://github.com/x3ps/
 перезапуску.</p>
 <h2 id="конкурентность">Конкурентность</h2>
 <h3 id="syncrwmutex-для-состояния">sync.RWMutex для состояния</h3>
-<p>Флаг <code>online</code> и коллбэки защищены <code>sync.RWMutex</code>:</p>
+<p>Флаги состояния и коллбэки защищены <code>sync.RWMutex</code>:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Interface</span> <span style="color:#66d9ef">struct</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mu</span>      <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">RWMutex</span> <span style="color:#75715e">// защищает: online, started, onSend, onStatus, cancelFn</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">writeMu</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Mutex</span>   <span style="color:#75715e">// сериализует запись в Stdout в Receive()</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">online</span>  <span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mu</span>              <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">RWMutex</span> <span style="color:#75715e">// защищает: pipeOnline, transportOnline, started, onSend, onStatus, cancelFn</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">writeMu</span>         <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Mutex</span>   <span style="color:#75715e">// сериализует запись в Stdout в Receive()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pipeOnline</span>      <span style="color:#66d9ef">bool</span>         <span style="color:#75715e">// pipe к rnsd жив (Start/readLoop)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">transportOnline</span> <span style="color:#66d9ef">bool</span>         <span style="color:#75715e">// сетевая сторона жива (SetOnline)</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// ...</span>
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p><code>writeMu</code> отдельный — чтобы несколько горутин могли одновременно вызывать <code>Receive()</code> без
@@ -237,8 +266,8 @@ Python-рантайм. Так появился <a href="https://github.com/x3ps/
 <li>Нет <code>zerolog</code> или <code>zap</code> — логирование через стандартный <code>log/slog</code></li>
 <li>Нет готового <code>backoff</code>-пакета — реализован вручную (невелик)</li>
 </ul>
-<p>Для E2E-тестов есть Python-зависимости (<code>rns</code>, <code>pytest</code>), но они изолированы в <code>flake.nix</code>
-и не попадают в <code>go.mod</code>.</p>
+<p>Для parity-тестов нужен только <code>python3</code> в PATH — скрипт встроен прямо в тест как константа,
+без сторонних Python-пакетов.</p>
 <h2 id="тестирование">Тестирование</h2>
 <h3 id="юнит-тесты">Юнит-тесты</h3>
 <p>Базовые сценарии в <code>pipe_test.go</code>: encode/decode, byte stuffing, пустые пакеты, метрики,
@@ -264,9 +293,18 @@ Python-рантайм. Так появился <a href="https://github.com/x3ps/
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>Есть и обратный тест: Python кодирует фрейм, Go декодирует. И полный round-trip:
 Go → Python → Go с бинарными нагрузками (<code>0x7E</code>, <code>0x7D</code>, их комбинациями).</p>
-<h3 id="e2e-тесты">E2E-тесты</h3>
-<p>Есть E2E через Docker/Podman с реальным rnsd — запускается через <code>make e2e</code>.
-Это уже проверяет TCP и UDP примеры (<code>examples/tcp</code>, <code>examples/udp</code>) в живой Reticulum-сети.</p>
+<h2 id="планы">Планы</h2>
+<p>Абстракция PipeInterface делает добавление новых транспортов почти механической задачей: реализуй
+чтение/запись пакетов через выбранный канал, вызывай <code>SetOnline</code> по состоянию соединения — и всё.</p>
+<p>Несколько транспортов в планах:</p>
+<p><strong>Email-транспорт</strong> — туннелирование пакетов Reticulum через SMTP/IMAP. Каждый пакет упаковывается
+в письмо, отправляется на почтовый сервер и считывается с другой стороны. Это позволяет обходить
+цензуру в регионах, где основной интернет-трафик фильтруется, но email ещё работает.</p>
+<p><strong>S3-транспорт</strong> — объектное хранилище (AWS S3, MinIO и аналоги) как асинхронное реле пакетов.
+Пакеты записываются как объекты с известным именованием; получатель периодически читает их и удаляет.
+Подходит для store-and-forward поверх сильно фильтруемых соединений или при асимметричном канале.</p>
+<p>Общая идея: PipeInterface — это не только удобный способ написать транспорт для rnsd, но и
+инструмент для реализации нестандартных каналов, которые никогда не войдут в официальный Python-код.</p>
 <h2 id="итоги">Итоги</h2>
 <p><strong>Что получилось:</strong></p>
 <ul>
@@ -274,7 +312,7 @@ Go → Python → Go с бинарными нагрузками (<code>0x7E</cod
 <li>Два режима переподключения (fixed delay и exponential backoff с jitter)</li>
 <li>Потоковый HDLC-декодер как <code>io.Writer</code> — подключается к <code>io.Copy</code> напрямую</li>
 <li>Метрики через атомарные счётчики</li>
-<li>Примеры реальных транспортов: TCP (с keepalive tuning под Linux) и UDP</li>
+<li>Двухбитное состояние online: <code>pipeOnline</code> (rnsd-сторона) + <code>transportOnline</code> (сетевая сторона)</li>
 </ul>
 <p><strong>Что узнал:</strong></p>
 <p>Точное воспроизведение behaviour другой реализации — это отдельная задача. Казалось бы, простой
@@ -284,6 +322,6 @@ Go → Python → Go с бинарными нагрузками (<code>0x7E</cod
 нужно понять жизненный цикл rnsd, прежде чем сделать правильный интерфейс.</p>
 <p><strong>Состояние проекта:</strong></p>
 <p>Библиотека стабильна, покрыта тестами, используется в моих проектах. Исходный код на GitHub:
-<a href="https://github.com/x3ps/go-rns-pipe">x3ps/go-rns-pipe</a>. Лицензия — AGPL-3.0.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go get github.com/x3ps/go-rns-pipe
+<a href="https://github.com/x3ps/go-rns-pipe">x3ps/go-rns-pipe</a>. Версия — v0.1.1. Лицензия — MIT.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go get github.com/x3ps/go-rns-pipe@v0.1.1
 </span></span></code></pre></div>]]></content></item></channel></rss>

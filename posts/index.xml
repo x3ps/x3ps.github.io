@@ -1,4 +1,325 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Blog on x3ps</title><link>https://x3ps.dev/posts/</link><description>Recent content in Blog on x3ps</description><generator>Hugo -- gohugo.io</generator><language>en</language><copyright>2025</copyright><lastBuildDate>Thu, 19 Mar 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://x3ps.dev/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Writing a Go Library for Reticulum: go-rns-pipe</title><link>https://x3ps.dev/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/</link><pubDate>Thu, 19 Mar 2026 00:00:00 +0000</pubDate><guid>https://x3ps.dev/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/</guid><description>&lt;h2 id="what-is-reticulum-and-why-i-needed-go"&gt;What is Reticulum and why I needed Go&lt;/h2&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Blog on x3ps</title><link>https://x3ps.dev/posts/</link><description>Recent content in Blog on x3ps</description><generator>Hugo -- gohugo.io</generator><language>en</language><copyright>2025</copyright><lastBuildDate>Sat, 21 Mar 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://x3ps.dev/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>rns-over-email: Tunneling Reticulum over Email</title><link>https://x3ps.dev/posts/2026/03/rns-over-email-tunneling-reticulum-over-email/</link><pubDate>Sat, 21 Mar 2026 00:00:00 +0000</pubDate><guid>https://x3ps.dev/posts/2026/03/rns-over-email-tunneling-reticulum-over-email/</guid><description>&lt;h2 id="where-this-came-from"&gt;Where this came from&lt;/h2&gt;
+&lt;p&gt;In the &lt;a href="https://x3ps.dev/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/"&gt;previous article about go-rns-pipe&lt;/a&gt;
+I wrote about a Go library for Reticulum&amp;rsquo;s PipeInterface protocol. The &amp;ldquo;Plans&amp;rdquo; section there included:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Email transport&lt;/strong&gt; — tunneling Reticulum packets over SMTP/IMAP. Each packet is wrapped in an
+email, sent to a mail server, and read out on the other side.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Here it is — &lt;a href="https://github.com/x3ps/rns-over-email"&gt;rns-over-email&lt;/a&gt;. It&amp;rsquo;s an rnsd PipeInterface
+subprocess that forwards RNS packets over ordinary email.&lt;/p&gt;
+&lt;p&gt;The project is in &lt;strong&gt;alpha status&lt;/strong&gt;. The basic data flow works, but the edges are unevenly worn:
+only a &lt;strong&gt;local mail server&lt;/strong&gt; (a Docker container like Mailpit) has been tested —
+real SMTP/IMAP rate limits at Gmail, Fastmail, Proton Mail and similar services are &lt;strong&gt;unknown&lt;/strong&gt;.
+UID checkpoints don&amp;rsquo;t survive restarts. Looking for testing and feedback.&lt;/p&gt;</description><content type="html"><![CDATA[<h2 id="where-this-came-from">Where this came from</h2>
+<p>In the <a href="/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/">previous article about go-rns-pipe</a>
+I wrote about a Go library for Reticulum&rsquo;s PipeInterface protocol. The &ldquo;Plans&rdquo; section there included:</p>
+<blockquote>
+<p><strong>Email transport</strong> — tunneling Reticulum packets over SMTP/IMAP. Each packet is wrapped in an
+email, sent to a mail server, and read out on the other side.</p>
+</blockquote>
+<p>Here it is — <a href="https://github.com/x3ps/rns-over-email">rns-over-email</a>. It&rsquo;s an rnsd PipeInterface
+subprocess that forwards RNS packets over ordinary email.</p>
+<p>The project is in <strong>alpha status</strong>. The basic data flow works, but the edges are unevenly worn:
+only a <strong>local mail server</strong> (a Docker container like Mailpit) has been tested —
+real SMTP/IMAP rate limits at Gmail, Fastmail, Proton Mail and similar services are <strong>unknown</strong>.
+UID checkpoints don&rsquo;t survive restarts. Looking for testing and feedback.</p>
+<h2 id="why-tunnel-reticulum-over-email">Why tunnel Reticulum over email</h2>
+<p>Email is one of the few protocols that works almost everywhere. Where VPNs, messengers, and
+non-standard ports are blocked, SMTP/IMAP often remain accessible — ISPs and corporate networks
+are forced to allow them.</p>
+<p>Reticulum is designed so it doesn&rsquo;t matter what carries the packets: LoRa, TCP, serial, or email.
+The transport is fully hidden behind PipeInterface. All that&rsquo;s needed is to deliver bytes back and
+forth. Email handles that, albeit slowly.</p>
+<p>Slowly is the key word. An email transport suits data that doesn&rsquo;t need low latency:
+store-and-forward message sync, node announcement replication, file transfers over Reticulum LXMF.
+Not for voice or real-time chat.</p>
+<h2 id="architecture">Architecture</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>                    stdin / stdout
+</span></span><span style="display:flex;"><span>                         │
+</span></span><span style="display:flex;"><span>            ┌────────────┴────────────┐
+</span></span><span style="display:flex;"><span>            │                         │
+</span></span><span style="display:flex;"><span>           rnsd              rns-over-email
+</span></span><span style="display:flex;"><span>            │                         │
+</span></span><span style="display:flex;"><span>            │                  SMTP (outbound)
+</span></span><span style="display:flex;"><span>            │                  IMAP (inbound)
+</span></span><span style="display:flex;"><span>            │                         │
+</span></span><span style="display:flex;"><span>            │                   mail server
+</span></span><span style="display:flex;"><span>            │                         │
+</span></span><span style="display:flex;"><span>            └───── network ───── remote peer
+</span></span><span style="display:flex;"><span>                                (your copy of
+</span></span><span style="display:flex;"><span>                              rns-over-email)
+</span></span></code></pre></div><p>One process — one peer. This is a <strong>linear model</strong>: each <code>rns-over-email</code> instance knows exactly
+one destination address (<code>--peer-email</code>). To connect to multiple peers, run multiple instances,
+each described by its own <code>[[PipeInterface]]</code> block in the rnsd config.</p>
+<p>This approach keeps the implementation simple and isolated: a problem with one peer doesn&rsquo;t affect
+the others.</p>
+<h2 id="data-flow">Data flow</h2>
+<h3 id="outbound-rns--mime--smtp">Outbound: RNS → MIME → SMTP</h3>
+<ol>
+<li>rnsd writes an HDLC frame to the process&rsquo;s stdin.</li>
+<li><code>go-rns-pipe</code> decodes the frame and extracts the raw RNS packet.</li>
+<li>The packet is serialized into a MIME email with a unique <code>Message-ID</code> and sent over SMTP.</li>
+<li>The email is delivered to the SMTP server with exponential backoff: 1s → 2s → 4s.</li>
+<li>After 5 consecutive failed sends, an <code>error</code>-level log entry is written.</li>
+</ol>
+<p><strong>MIME email structure:</strong></p>
+<ul>
+<li><code>From:</code> / <code>To:</code> — own and peer addresses</li>
+<li><code>Message-ID:</code> — <code>&lt;uuid@smtp-from-domain&gt;</code>, UUID v4 guarantees uniqueness; MTAs and IMAP servers
+may deduplicate by it — which works in our favor (RNS deduplicates on top of that anyway)</li>
+<li><code>Content-Type: application/octet-stream</code> for an attachment carrying the binary RNS packet body
+(base64 per the MIME standard)</li>
+</ul>
+<p>Emails are assembled using <code>github.com/emersion/go-message</code> (v0.18.2) — the same ecosystem as
+go-imap/v2, which simplifies MIME handling.</p>
+<p>The delivery model is <strong>best-effort, at-most-once</strong>. Losing a packet at this layer is normal:
+the RNS Link and Resource layers have their own ACKs and retransmission. <code>rns-over-email</code> makes
+no attempt to recover lost packets — that&rsquo;s Reticulum&rsquo;s job.</p>
+<h3 id="inbound-imap--decode--rns">Inbound: IMAP → decode → RNS</h3>
+<ol>
+<li>The IMAP worker connects to the server and, if the server supports IMAP IDLE, waits for push
+notifications. Otherwise it polls the mailbox periodically (default: every 60 seconds).</li>
+<li>New emails are filtered by <code>From:</code> — only emails from <code>--peer-email</code> are accepted; the rest
+are ignored.</li>
+<li>The attachment is decoded back into the raw RNS packet bytes.</li>
+<li>The packet is passed to rnsd via <code>Receive()</code> (stdout).</li>
+<li>The processed UID is saved as a checkpoint and won&rsquo;t be read again.</li>
+</ol>
+<p><strong>IMAP IDLE details:</strong></p>
+<ul>
+<li>The client sends the <code>IDLE</code> command; the server keeps the connection open and sends <code>* N EXISTS</code>
+when a new email arrives — true push with no polling.</li>
+<li>Without IDLE (fallback): <code>SELECT INBOX</code> + <code>SEARCH UID &gt; last_uid</code> + <code>FETCH</code> every poll interval.</li>
+<li>An IDLE connection needs periodic keep-alives: RFC 2177 recommends reconnecting at least every
+29 minutes. go-imap/v2 handles this transparently.</li>
+</ul>
+<p>A decoding error does not delete the email — it stays in the mailbox for manual inspection.</p>
+<h3 id="imap-uid-checkpoints">IMAP UID checkpoints</h3>
+<p>Each read email is tracked by UID. On the next poll, only emails with a UID above the last
+processed one are fetched. The checkpoint is stored in memory — <strong>it does not survive process
+restarts</strong>. This is a known alpha limitation: after a restart some emails may be processed again,
+which is safe (RNS deduplicates at its layer) but wasteful.</p>
+<h2 id="delivery-model">Delivery model</h2>
+<table>
+  <thead>
+      <tr>
+          <th>Scenario</th>
+          <th>Behavior</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>SMTP server unreachable</td>
+          <td>Exponential backoff: 1s, 2s, 4s; then the packet is dropped</td>
+      </tr>
+      <tr>
+          <td>5+ consecutive send failures</td>
+          <td><code>error</code>-level log entry</td>
+      </tr>
+      <tr>
+          <td>IMAP decode failure</td>
+          <td>Email is not deleted; error is logged</td>
+      </tr>
+      <tr>
+          <td>Duplicate packet</td>
+          <td>RNS layer deduplicates</td>
+      </tr>
+      <tr>
+          <td>Process restart</td>
+          <td>UID checkpoint is reset; reprocessing is safe</td>
+      </tr>
+  </tbody>
+</table>
+<h2 id="configuration">Configuration</h2>
+<h3 id="cli-flags-and-environment-variables">CLI flags and environment variables</h3>
+<p>Every flag has an equivalent environment variable with the <code>RNS_EMAIL_</code> prefix.</p>
+<p><strong>SMTP (outbound):</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>Flag</th>
+          <th>Variable</th>
+          <th>Default</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>--smtp-host</code></td>
+          <td><code>RNS_EMAIL_SMTP_HOST</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--smtp-port</code></td>
+          <td><code>RNS_EMAIL_SMTP_PORT</code></td>
+          <td><code>587</code> (STARTTLS)</td>
+      </tr>
+      <tr>
+          <td><code>--smtp-username</code></td>
+          <td><code>RNS_EMAIL_SMTP_USERNAME</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--smtp-password</code></td>
+          <td><code>RNS_EMAIL_SMTP_PASSWORD</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--smtp-password-file</code></td>
+          <td><code>RNS_EMAIL_SMTP_PASSWORD_FILE</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--smtp-from</code></td>
+          <td><code>RNS_EMAIL_SMTP_FROM</code></td>
+          <td>—</td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>IMAP (inbound):</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>Flag</th>
+          <th>Variable</th>
+          <th>Default</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>--imap-host</code></td>
+          <td><code>RNS_EMAIL_IMAP_HOST</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--imap-port</code></td>
+          <td><code>RNS_EMAIL_IMAP_PORT</code></td>
+          <td><code>993</code> (TLS)</td>
+      </tr>
+      <tr>
+          <td><code>--imap-username</code></td>
+          <td><code>RNS_EMAIL_IMAP_USERNAME</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--imap-password</code></td>
+          <td><code>RNS_EMAIL_IMAP_PASSWORD</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--imap-password-file</code></td>
+          <td><code>RNS_EMAIL_IMAP_PASSWORD_FILE</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--imap-poll-interval</code></td>
+          <td><code>RNS_EMAIL_IMAP_POLL_INTERVAL</code></td>
+          <td><code>60s</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Peer and misc:</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>Flag</th>
+          <th>Variable</th>
+          <th>Default</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>--peer-email</code></td>
+          <td><code>RNS_EMAIL_PEER</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--mtu</code></td>
+          <td><code>RNS_EMAIL_MTU</code></td>
+          <td><code>500</code></td>
+      </tr>
+  </tbody>
+</table>
+<p>Passwords passed via CLI flags will show up in <code>ps aux</code>. Use <code>--*-password-file</code> or environment
+variables in production.</p>
+<h3 id="rnsd-config">rnsd config</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-ini" data-lang="ini"><span style="display:flex;"><span><span style="color:#66d9ef">[interfaces]</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">[[Email to Alice]]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">type</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">PipeInterface
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    interface_enabled = Yes
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    command = rns-over-email \
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      --smtp-host smtp.example.com \
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      --smtp-username bob@example.com \
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      --smtp-password-file /run/secrets/smtp_pass \
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      --smtp-from bob@example.com \
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      --imap-host imap.example.com \
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      --imap-username bob@example.com \
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      --imap-password-file /run/secrets/imap_pass \
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      --peer-email alice@example.com
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    respawn_delay = 5</span>
+</span></span></code></pre></div><p>On Alice&rsquo;s side — the mirror configuration with <code>--peer-email bob@example.com</code>.</p>
+<h2 id="installation">Installation</h2>
+<h3 id="go-install">go install</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go install github.com/x3ps/rns-iface-email/cmd/rns-over-email@latest
+</span></span></code></pre></div><h3 id="prebuilt-binaries">Prebuilt binaries</h3>
+<p>The <a href="https://github.com/x3ps/rns-over-email/releases">Releases</a> page has binaries for:</p>
+<ul>
+<li>Linux: amd64, arm64</li>
+<li>macOS: amd64, arm64</li>
+<li>Windows: amd64, arm64</li>
+</ul>
+<h3 id="build-from-source">Build from source</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git clone https://github.com/x3ps/rns-over-email
+</span></span><span style="display:flex;"><span>cd rns-over-email
+</span></span><span style="display:flex;"><span>go build ./cmd/rns-over-email
+</span></span></code></pre></div><h2 id="dependencies">Dependencies</h2>
+<p>The project is built on three external packages:</p>
+<ul>
+<li><strong><a href="https://github.com/emersion/go-imap">go-imap/v2</a></strong> — IMAP client with IDLE support</li>
+<li><strong><a href="https://github.com/emersion/go-smtp">go-smtp</a></strong> — SMTP client with STARTTLS/TLS</li>
+<li><strong><a href="https://github.com/x3ps/go-rns-pipe">go-rns-pipe</a></strong> (v0.1.1) — HDLC framing and PipeInterface</li>
+</ul>
+<p><code>go-rns-pipe</code> is the library from the <a href="/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/">previous article</a>.
+<code>rns-over-email</code> is the library&rsquo;s first production user.</p>
+<p>Plus <code>github.com/google/uuid</code> for <code>Message-ID</code> generation.</p>
+<h2 id="plans">Plans</h2>
+<h3 id="e2e-tests-with-greenmail">E2E tests with Greenmail</h3>
+<p>Currently only unit tests exist; there are no integration tests (real SMTP/IMAP round-trip).
+<a href="https://greenmail-mail-test.github.io/greenmail/">Greenmail</a> — an embeddable SMTP/IMAP server for
+tests — will allow running the full outbound→inbound cycle without external mail. This is the next
+step toward reliability.</p>
+<h3 id="pop3-maybe">POP3 (maybe)</h3>
+<p>An alternative to IMAP for inbound — POP3 is simpler to implement, but has no IDLE and no proper
+UID support. Will depend on feedback: are there real servers where IMAP is unavailable but POP3 is
+not?</p>
+<h3 id="multipeer--a-deliberate-non-feature">Multipeer — a deliberate non-feature</h3>
+<p>Multipeer mode (one process, multiple <code>--peer-email</code>) was considered and rejected.
+The reason: the linear model is simpler and more isolated — each peer lives in its own process,
+and a problem with one doesn&rsquo;t affect the others.</p>
+<p>The right approach: <strong>run multiple instances</strong> of the binary with different <code>--peer-email</code> values,
+each described by its own <code>[[PipeInterface]]</code> block in the rnsd config (see the
+<a href="/posts/2026/03/rns-over-email-tunneling-reticulum-over-email/#rnsd-config">rnsd config</a> section above).</p>
+<h2 id="alpha-looking-for-testing-and-feedback">Alpha: looking for testing and feedback</h2>
+<p>The project is real and working, but young. What I&rsquo;d particularly like to verify:</p>
+<ul>
+<li><strong>Mail server compatibility</strong> — only tested against a local Docker server (Mailpit).
+Fastmail, Gmail, Proton Mail (via bridge), corporate Exchange — curious how they behave.</li>
+<li><strong>Rate limits</strong> — real SMTP/IMAP rate limits at public providers are unknown. Under heavy
+traffic you might hit limits on connection counts or emails per hour.</li>
+<li><strong>IMAP IDLE</strong> — some servers formally advertise IDLE but implement it poorly.
+If the fallback polling kicks in where it shouldn&rsquo;t — that&rsquo;s worth knowing.</li>
+<li><strong>Performance</strong> — what&rsquo;s the real throughput at a 60s poll interval? What&rsquo;s the latency in a
+&ldquo;messenger over LXMF over rns-over-email&rdquo; scenario?</li>
+<li><strong>Edge cases in configuration</strong> — what happens on password change, session expiry,
+or a full IMAP inbox.</li>
+</ul>
+<p>If you try it — let me know how it went:</p>
+<ul>
+<li><strong>GitHub Issues</strong>: <a href="https://github.com/x3ps/rns-over-email/issues">x3ps/rns-over-email/issues</a></li>
+<li><strong>Matrix</strong>: <code>@x3ps:matrix.org</code></li>
+<li><strong>Email</strong>: see the profile on GitHub</li>
+</ul>
+<p>Any feedback is useful: &ldquo;works on Fastmail&rdquo; is already good. &ldquo;Crashes here&rdquo; is even better.</p>
+]]></content></item><item><title>Writing a Go Library for Reticulum: go-rns-pipe</title><link>https://x3ps.dev/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/</link><pubDate>Thu, 19 Mar 2026 00:00:00 +0000</pubDate><guid>https://x3ps.dev/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/</guid><description>&lt;h2 id="what-is-reticulum-and-why-i-needed-go"&gt;What is Reticulum and why I needed Go&lt;/h2&gt;
 &lt;p&gt;&lt;a href="https://reticulum.network/"&gt;Reticulum Network Stack&lt;/a&gt; is a cryptographic network stack designed
 to work under conditions of low bandwidth and unreliable links. The key idea: abstraction over
 physical transport. Reticulum can operate over LoRa, TCP, UDP, serial ports — and through
@@ -39,21 +360,21 @@ with that future in mind that <a href="https://github.com/x3ps/go-rns-pipe">go-r
 rnsd won&rsquo;t understand a single packet.</p>
 <h2 id="architecture">Architecture</h2>
 <p>The library consists of six components:</p>
-<pre tabindex="0"><code>         stdin
-           │
-           ▼
-      ┌─────────┐   packets   ┌──────────────────┐
-      │ Decoder │ ──────────► │                  │
-      └─────────┘             │    Interface     │ ◄── OnSend callback
-                              │                  │
-      ┌─────────┐   frame     │  pipeOnline      │ ◄── Start()/readLoop()
-      │ Encoder │ ◄────────── │  transportOnline │ ◄── SetOnline(bool)
-      └─────────┘             └──────────────────┘
-           │                          │
-           ▼                     Reconnector
-         stdout                        │
-                                  Config / slog
-</code></pre><ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>         stdin
+</span></span><span style="display:flex;"><span>           │
+</span></span><span style="display:flex;"><span>           ▼
+</span></span><span style="display:flex;"><span>      ┌─────────┐   packets   ┌──────────────────┐
+</span></span><span style="display:flex;"><span>      │ Decoder │ ──────────► │                  │
+</span></span><span style="display:flex;"><span>      └─────────┘             │    Interface     │ ◄── OnSend callback
+</span></span><span style="display:flex;"><span>                              │                  │
+</span></span><span style="display:flex;"><span>      ┌─────────┐   frame     │  pipeOnline      │ ◄── Start()/readLoop()
+</span></span><span style="display:flex;"><span>      │ Encoder │ ◄────────── │  transportOnline │ ◄── SetOnline(bool)
+</span></span><span style="display:flex;"><span>      └─────────┘             └──────────────────┘
+</span></span><span style="display:flex;"><span>           │                          │
+</span></span><span style="display:flex;"><span>           ▼                     Reconnector
+</span></span><span style="display:flex;"><span>         stdout                        │
+</span></span><span style="display:flex;"><span>                                  Config / slog
+</span></span></code></pre></div><ul>
 <li><strong><code>Interface</code></strong> — the central type. Orchestrates reading/writing, manages the two-bit <code>online</code>
 state, invokes callbacks.</li>
 <li><strong><code>Encoder</code></strong> — wraps an arbitrary byte slice in an HDLC frame.</li>
@@ -98,8 +419,8 @@ network side is temporarily unavailable.</p>
 <h2 id="hdlc-framing">HDLC framing</h2>
 <h3 id="frame-structure">Frame structure</h3>
 <p>HDLC (High-Level Data Link Control) in a simplified form, similar to PPP:</p>
-<pre tabindex="0"><code>0x7E | escaped_data | 0x7E
-</code></pre><p>The byte <code>0x7E</code> is the start/end frame flag. If the payload contains <code>0x7E</code> or <code>0x7D</code>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>0x7E | escaped_data | 0x7E
+</span></span></code></pre></div><p>The byte <code>0x7E</code> is the start/end frame flag. If the payload contains <code>0x7E</code> or <code>0x7D</code>
 (the escape character), they must be escaped:</p>
 <table>
   <thead>

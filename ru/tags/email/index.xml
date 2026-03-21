@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Email on x3ps</title><link>https://x3ps.dev/ru/tags/email/</link><description>Recent content in Email on x3ps</description><generator>Hugo</generator><language>ru</language><copyright>2025</copyright><lastBuildDate>Sat, 21 Mar 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://x3ps.dev/ru/tags/email/index.xml" rel="self" type="application/rss+xml"/><item><title>rns-over-email: туннелируем Reticulum через почту</title><link>https://x3ps.dev/ru/posts/2026/03/rns-over-email-tunneling-reticulum-over-email/</link><pubDate>Sat, 21 Mar 2026 00:00:00 +0000</pubDate><guid>https://x3ps.dev/ru/posts/2026/03/rns-over-email-tunneling-reticulum-over-email/</guid><description>&lt;h2 id="откуда-это-взялось"&gt;Откуда это взялось&lt;/h2&gt;
+&lt;p&gt;В &lt;a href="https://x3ps.dev/ru/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/"&gt;предыдущей статье о go-rns-pipe&lt;/a&gt;
+я рассказывал о Go-библиотеке для PipeInterface протокола Reticulum. В разделе «Планы» там был пункт:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Email-транспорт&lt;/strong&gt; — туннелирование пакетов Reticulum через SMTP/IMAP. Каждый пакет упаковывается
+в письмо, отправляется на почтовый сервер и считывается с другой стороны.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Вот он — &lt;a href="https://github.com/x3ps/rns-over-email"&gt;rns-over-email&lt;/a&gt;. Это rnsd PipeInterface-субпроцесс,
+который пробрасывает RNS-пакеты через обычную электронную почту.&lt;/p&gt;
+&lt;p&gt;Проект в &lt;strong&gt;альфа-статусе&lt;/strong&gt;. Базовый поток данных работает, но края протёрты неравномерно:
+тестировался только &lt;strong&gt;локальный почтовый сервер&lt;/strong&gt; (Docker-контейнер типа Mailpit) —
+реальные рейтлимиты SMTP/IMAP у Gmail, Fastmail, Proton Mail и подобных &lt;strong&gt;неизвестны&lt;/strong&gt;.
+UID-чекпоинты не переживают перезапуск. Жду тестирования и фидбека.&lt;/p&gt;</description></item></channel></rss>

@@ -1,4 +1,324 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Блог on x3ps</title><link>https://x3ps.dev/ru/posts/</link><description>Recent content in Блог on x3ps</description><generator>Hugo -- gohugo.io</generator><language>ru</language><copyright>2025</copyright><lastBuildDate>Thu, 19 Mar 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://x3ps.dev/ru/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Пишем Go-библиотеку для Reticulum: go-rns-pipe</title><link>https://x3ps.dev/ru/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/</link><pubDate>Thu, 19 Mar 2026 00:00:00 +0000</pubDate><guid>https://x3ps.dev/ru/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/</guid><description>&lt;h2 id="что-такое-reticulum-и-зачем-мне-понадобился-go"&gt;Что такое Reticulum и зачем мне понадобился Go&lt;/h2&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Блог on x3ps</title><link>https://x3ps.dev/ru/posts/</link><description>Recent content in Блог on x3ps</description><generator>Hugo -- gohugo.io</generator><language>ru</language><copyright>2025</copyright><lastBuildDate>Sat, 21 Mar 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://x3ps.dev/ru/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>rns-over-email: туннелируем Reticulum через почту</title><link>https://x3ps.dev/ru/posts/2026/03/rns-over-email-tunneling-reticulum-over-email/</link><pubDate>Sat, 21 Mar 2026 00:00:00 +0000</pubDate><guid>https://x3ps.dev/ru/posts/2026/03/rns-over-email-tunneling-reticulum-over-email/</guid><description>&lt;h2 id="откуда-это-взялось"&gt;Откуда это взялось&lt;/h2&gt;
+&lt;p&gt;В &lt;a href="https://x3ps.dev/ru/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/"&gt;предыдущей статье о go-rns-pipe&lt;/a&gt;
+я рассказывал о Go-библиотеке для PipeInterface протокола Reticulum. В разделе «Планы» там был пункт:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Email-транспорт&lt;/strong&gt; — туннелирование пакетов Reticulum через SMTP/IMAP. Каждый пакет упаковывается
+в письмо, отправляется на почтовый сервер и считывается с другой стороны.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Вот он — &lt;a href="https://github.com/x3ps/rns-over-email"&gt;rns-over-email&lt;/a&gt;. Это rnsd PipeInterface-субпроцесс,
+который пробрасывает RNS-пакеты через обычную электронную почту.&lt;/p&gt;
+&lt;p&gt;Проект в &lt;strong&gt;альфа-статусе&lt;/strong&gt;. Базовый поток данных работает, но края протёрты неравномерно:
+тестировался только &lt;strong&gt;локальный почтовый сервер&lt;/strong&gt; (Docker-контейнер типа Mailpit) —
+реальные рейтлимиты SMTP/IMAP у Gmail, Fastmail, Proton Mail и подобных &lt;strong&gt;неизвестны&lt;/strong&gt;.
+UID-чекпоинты не переживают перезапуск. Жду тестирования и фидбека.&lt;/p&gt;</description><content type="html"><![CDATA[<h2 id="откуда-это-взялось">Откуда это взялось</h2>
+<p>В <a href="/ru/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/">предыдущей статье о go-rns-pipe</a>
+я рассказывал о Go-библиотеке для PipeInterface протокола Reticulum. В разделе «Планы» там был пункт:</p>
+<blockquote>
+<p><strong>Email-транспорт</strong> — туннелирование пакетов Reticulum через SMTP/IMAP. Каждый пакет упаковывается
+в письмо, отправляется на почтовый сервер и считывается с другой стороны.</p>
+</blockquote>
+<p>Вот он — <a href="https://github.com/x3ps/rns-over-email">rns-over-email</a>. Это rnsd PipeInterface-субпроцесс,
+который пробрасывает RNS-пакеты через обычную электронную почту.</p>
+<p>Проект в <strong>альфа-статусе</strong>. Базовый поток данных работает, но края протёрты неравномерно:
+тестировался только <strong>локальный почтовый сервер</strong> (Docker-контейнер типа Mailpit) —
+реальные рейтлимиты SMTP/IMAP у Gmail, Fastmail, Proton Mail и подобных <strong>неизвестны</strong>.
+UID-чекпоинты не переживают перезапуск. Жду тестирования и фидбека.</p>
+<h2 id="зачем-туннелировать-reticulum-через-почту">Зачем туннелировать Reticulum через почту</h2>
+<p>Email — один из немногих протоколов, которые работают почти везде. Там, где заблокированы VPN,
+мессенджеры и нестандартные порты, SMTP/IMAP часто остаются доступны — провайдеры и корпоративные
+сети вынуждены их пропускать.</p>
+<p>Reticulum устроен так, что не важно, через что идут пакеты: LoRa, TCP, serial или электронная
+почта. Транспорт полностью скрыт за PipeInterface. Всё, что нужно — доставить байты туда и
+обратно. Email с этим справляется, пусть и медленно.</p>
+<p>Медленно — это ключевое слово. Email-транспорт подходит для данных, которым не нужна
+низкая задержка: синхронизация store-and-forward сообщений, репликация анонсов узлов,
+передача файлов через Reticulum LXMF. Для голоса или real-time чата — нет.</p>
+<h2 id="архитектура">Архитектура</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>                    stdin / stdout
+</span></span><span style="display:flex;"><span>                         │
+</span></span><span style="display:flex;"><span>            ┌────────────┴────────────┐
+</span></span><span style="display:flex;"><span>            │                         │
+</span></span><span style="display:flex;"><span>           rnsd              rns-over-email
+</span></span><span style="display:flex;"><span>            │                         │
+</span></span><span style="display:flex;"><span>            │                  SMTP (outbound)
+</span></span><span style="display:flex;"><span>            │                  IMAP (inbound)
+</span></span><span style="display:flex;"><span>            │                         │
+</span></span><span style="display:flex;"><span>            │                   mail server
+</span></span><span style="display:flex;"><span>            │                         │
+</span></span><span style="display:flex;"><span>            └──────── сеть ───── remote peer
+</span></span><span style="display:flex;"><span>                                (своя копия
+</span></span><span style="display:flex;"><span>                              rns-over-email)
+</span></span></code></pre></div><p>Один процесс — один пир. Это <strong>линейная модель</strong>: каждый экземпляр <code>rns-over-email</code> знает ровно
+об одном адресе назначения (<code>--peer-email</code>). Если нужно связаться с несколькими пирами — запускается
+несколько экземпляров, каждый описывается своим блоком <code>[[PipeInterface]]</code> в конфиге rnsd.</p>
+<p>Такой подход упрощает реализацию и изоляцию: проблема с одним пиром не аффектирует остальных.</p>
+<h2 id="поток-данных">Поток данных</h2>
+<h3 id="outbound-rns--mime--smtp">Outbound: RNS → MIME → SMTP</h3>
+<ol>
+<li>rnsd записывает HDLC-фрейм в stdin процесса.</li>
+<li><code>go-rns-pipe</code> декодирует фрейм, достаёт сырой RNS-пакет.</li>
+<li>Пакет сериализуется в MIME-письмо с уникальным <code>Message-ID</code> и отправляется через SMTP.</li>
+<li>Письмо отправляется на SMTP-сервер с экспоненциальным бэкоффом: 1s → 2s → 4s.</li>
+<li>После 5 подряд неудавшихся отправок логируется ошибка уровня <code>error</code>.</li>
+</ol>
+<p><strong>MIME-структура письма:</strong></p>
+<ul>
+<li><code>From:</code> / <code>To:</code> — адреса своего и пира</li>
+<li><code>Message-ID:</code> — <code>&lt;uuid@smtp-from-domain&gt;</code>, UUID v4 гарантирует уникальность; MTA и IMAP-серверы
+могут дедуплицировать по нему — нам это на руку (RNS всё равно дедуплицирует сверху)</li>
+<li><code>Content-Type: application/octet-stream</code> для attachment с бинарным телом RNS-пакета
+(base64 по стандарту MIME)</li>
+</ul>
+<p>Письма собираются через <code>github.com/emersion/go-message</code> (v0.18.2) — та же экосистема, что
+go-imap/v2, что упрощает работу с MIME.</p>
+<p>Модель доставки — <strong>best-effort, at-most-once</strong>. Потеря пакета на этом уровне нормальна:
+RNS Link и Resource слои имеют собственные ACK и ретрансмиссию. <code>rns-over-email</code> не пытается
+восстановить потерянные пакеты — это работа Reticulum.</p>
+<h3 id="inbound-imap--decode--rns">Inbound: IMAP → decode → RNS</h3>
+<ol>
+<li>IMAP-воркер подключается к серверу и, если сервер поддерживает IMAP IDLE, ждёт push-уведомлений.
+Если нет — периодически опрашивает ящик (по умолчанию раз в 60 секунд).</li>
+<li>Новые письма фильтруются по <code>From:</code> — принимаются только письма от <code>--peer-email</code>; остальные
+игнорируются.</li>
+<li>Attachment декодируется обратно в байты RNS-пакета.</li>
+<li>Пакет передаётся в rnsd через <code>Receive()</code> (stdout).</li>
+<li>Обработанный UID сохраняется как чекпоинт — повторно не читается.</li>
+</ol>
+<p><strong>Детали IMAP IDLE:</strong></p>
+<ul>
+<li>Клиент отправляет команду <code>IDLE</code>, сервер держит соединение открытым и присылает <code>* N EXISTS</code>
+при появлении нового письма — это настоящий push без опроса.</li>
+<li>Без IDLE (fallback): <code>SELECT INBOX</code> + <code>SEARCH UID &gt; last_uid</code> + <code>FETCH</code> раз в poll-interval.</li>
+<li>Соединение IDLE требует периодического keep-alive: RFC 2177 рекомендует переподключаться
+не реже чем раз в 29 минут. go-imap/v2 обрабатывает это прозрачно.</li>
+</ul>
+<p>Ошибка декодирования не удаляет письмо — оно остаётся в ящике для ручного разбора.</p>
+<h3 id="imap-uid-чекпоинты">IMAP UID чекпоинты</h3>
+<p>Каждое прочитанное письмо помечается по UID. При следующем опросе читаются только письма с UID
+выше последнего обработанного. Чекпоинт хранится в памяти — <strong>не переживает перезапуск процесса</strong>.
+Это известное ограничение альфа-версии: после перезапуска возможна повторная обработка писем,
+что безопасно (RNS дедуплицирует на своём уровне), но расточительно.</p>
+<h2 id="модель-доставки">Модель доставки</h2>
+<table>
+  <thead>
+      <tr>
+          <th>Сценарий</th>
+          <th>Поведение</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>SMTP-сервер недоступен</td>
+          <td>Экспоненциальный бэкофф: 1s, 2s, 4s; затем пакет теряется</td>
+      </tr>
+      <tr>
+          <td>5+ последовательных ошибок отправки</td>
+          <td><code>error</code>-уровень лога</td>
+      </tr>
+      <tr>
+          <td>IMAP decode failure</td>
+          <td>Письмо не удаляется, ошибка логируется</td>
+      </tr>
+      <tr>
+          <td>Дубликат пакета</td>
+          <td>RNS-уровень дедуплицирует</td>
+      </tr>
+      <tr>
+          <td>Перезапуск процесса</td>
+          <td>UID-чекпоинт сбрасывается; повторная обработка безопасна</td>
+      </tr>
+  </tbody>
+</table>
+<h2 id="конфигурация">Конфигурация</h2>
+<h3 id="cli-флаги-и-переменные-окружения">CLI-флаги и переменные окружения</h3>
+<p>Каждый флаг имеет эквивалентную переменную окружения с префиксом <code>RNS_EMAIL_</code>.</p>
+<p><strong>SMTP (исходящая почта):</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>Флаг</th>
+          <th>Переменная</th>
+          <th>По умолчанию</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>--smtp-host</code></td>
+          <td><code>RNS_EMAIL_SMTP_HOST</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--smtp-port</code></td>
+          <td><code>RNS_EMAIL_SMTP_PORT</code></td>
+          <td><code>587</code> (STARTTLS)</td>
+      </tr>
+      <tr>
+          <td><code>--smtp-username</code></td>
+          <td><code>RNS_EMAIL_SMTP_USERNAME</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--smtp-password</code></td>
+          <td><code>RNS_EMAIL_SMTP_PASSWORD</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--smtp-password-file</code></td>
+          <td><code>RNS_EMAIL_SMTP_PASSWORD_FILE</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--smtp-from</code></td>
+          <td><code>RNS_EMAIL_SMTP_FROM</code></td>
+          <td>—</td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>IMAP (входящая почта):</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>Флаг</th>
+          <th>Переменная</th>
+          <th>По умолчанию</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>--imap-host</code></td>
+          <td><code>RNS_EMAIL_IMAP_HOST</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--imap-port</code></td>
+          <td><code>RNS_EMAIL_IMAP_PORT</code></td>
+          <td><code>993</code> (TLS)</td>
+      </tr>
+      <tr>
+          <td><code>--imap-username</code></td>
+          <td><code>RNS_EMAIL_IMAP_USERNAME</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--imap-password</code></td>
+          <td><code>RNS_EMAIL_IMAP_PASSWORD</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--imap-password-file</code></td>
+          <td><code>RNS_EMAIL_IMAP_PASSWORD_FILE</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--imap-poll-interval</code></td>
+          <td><code>RNS_EMAIL_IMAP_POLL_INTERVAL</code></td>
+          <td><code>60s</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Пир и прочее:</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>Флаг</th>
+          <th>Переменная</th>
+          <th>По умолчанию</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>--peer-email</code></td>
+          <td><code>RNS_EMAIL_PEER</code></td>
+          <td>—</td>
+      </tr>
+      <tr>
+          <td><code>--mtu</code></td>
+          <td><code>RNS_EMAIL_MTU</code></td>
+          <td><code>500</code></td>
+      </tr>
+  </tbody>
+</table>
+<p>Пароли через CLI-флаги отображаются в <code>ps aux</code>. Используйте <code>--*-password-file</code> или переменные
+окружения в production.</p>
+<h3 id="конфиг-rnsd">Конфиг rnsd</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-ini" data-lang="ini"><span style="display:flex;"><span><span style="color:#66d9ef">[interfaces]</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">[[Email to Alice]]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">type</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">PipeInterface
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    interface_enabled = Yes
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    command = rns-over-email \
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      --smtp-host smtp.example.com \
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      --smtp-username bob@example.com \
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      --smtp-password-file /run/secrets/smtp_pass \
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      --smtp-from bob@example.com \
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      --imap-host imap.example.com \
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      --imap-username bob@example.com \
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      --imap-password-file /run/secrets/imap_pass \
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      --peer-email alice@example.com
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    respawn_delay = 5</span>
+</span></span></code></pre></div><p>На стороне Alice — зеркальная конфигурация с <code>--peer-email bob@example.com</code>.</p>
+<h2 id="установка">Установка</h2>
+<h3 id="go-install">go install</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go install github.com/x3ps/rns-iface-email/cmd/rns-over-email@latest
+</span></span></code></pre></div><h3 id="готовые-бинари">Готовые бинари</h3>
+<p>На странице <a href="https://github.com/x3ps/rns-over-email/releases">Releases</a> есть бинари для:</p>
+<ul>
+<li>Linux: amd64, arm64</li>
+<li>macOS: amd64, arm64</li>
+<li>Windows: amd64, arm64</li>
+</ul>
+<h3 id="сборка-из-исходников">Сборка из исходников</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git clone https://github.com/x3ps/rns-over-email
+</span></span><span style="display:flex;"><span>cd rns-over-email
+</span></span><span style="display:flex;"><span>go build ./cmd/rns-over-email
+</span></span></code></pre></div><h2 id="зависимости">Зависимости</h2>
+<p>Проект строится на трёх внешних пакетах:</p>
+<ul>
+<li><strong><a href="https://github.com/emersion/go-imap">go-imap/v2</a></strong> — IMAP-клиент с поддержкой IDLE</li>
+<li><strong><a href="https://github.com/emersion/go-smtp">go-smtp</a></strong> — SMTP-клиент с STARTTLS/TLS</li>
+<li><strong><a href="https://github.com/x3ps/go-rns-pipe">go-rns-pipe</a></strong> (v0.1.1) — HDLC-фреймирование и PipeInterface</li>
+</ul>
+<p><code>go-rns-pipe</code> — это та самая библиотека из <a href="/ru/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/">предыдущей статьи</a>.
+<code>rns-over-email</code> — первый production-пользователь библиотеки.</p>
+<p>Плюс <code>github.com/google/uuid</code> для генерации <code>Message-ID</code>.</p>
+<h2 id="планы">Планы</h2>
+<h3 id="e2e-тесты-с-greenmail">E2e тесты с Greenmail</h3>
+<p>Сейчас покрытие только юнит-тестами; интеграционных тестов (реальный SMTP/IMAP round-trip) нет.
+<a href="https://greenmail-mail-test.github.io/greenmail/">Greenmail</a> — встраиваемый SMTP/IMAP-сервер для
+тестов — позволит гонять полный цикл outbound→inbound без внешней почты. Это следующий шаг
+в сторону надёжности.</p>
+<h3 id="pop3-возможно">POP3 (возможно)</h3>
+<p>Альтернатива IMAP для входящих — POP3 проще в реализации, но без IDLE и нормального UID.
+Будет зависеть от фидбека: есть ли реальные серверы, где IMAP недоступен, а POP3 — есть.</p>
+<h3 id="multipeer--осознанное-решение-не-делать">Multipeer — осознанное решение не делать</h3>
+<p>Мысли о мультипир-режиме (один процесс, несколько <code>--peer-email</code>) были, но отказался.
+Причина: линейная модель проще и изолированнее — каждый пир живёт в отдельном процессе,
+проблема с одним не аффектирует остальных.</p>
+<p>Правильный путь: <strong>запускать несколько экземпляров</strong> бинарника с разными <code>--peer-email</code>,
+каждый описывается своим блоком <code>[[PipeInterface]]</code> в конфиге rnsd (пример есть в разделе
+<a href="/ru/posts/2026/03/rns-over-email-tunneling-reticulum-over-email/#%d0%ba%d0%be%d0%bd%d1%84%d0%b8%d0%b3-rnsd">Конфиг rnsd</a> выше).</p>
+<h2 id="альфа-жду-тестирования-и-фидбека">Альфа: жду тестирования и фидбека</h2>
+<p>Проект реален, работает, но молод. Что именно хотелось бы проверить:</p>
+<ul>
+<li><strong>Совместимость с почтовыми серверами</strong> — тестировал только на локальном сервере в Docker
+(Mailpit). Fastmail, Gmail, Proton Mail (через bridge), корпоративные Exchange — интересно,
+как ведут себя там.</li>
+<li><strong>Рейтлимиты</strong> — реальные ограничения SMTP/IMAP у публичных провайдеров неизвестны. При
+интенсивном трафике можно упереться в лимиты на количество подключений или писем в час.</li>
+<li><strong>IMAP IDLE</strong> — есть серверы, которые формально объявляют IDLE, но реализуют его плохо.
+Если fallback-поллинг включается там, где не должен — это нужно знать.</li>
+<li><strong>Производительность</strong> — какой реальный throughput при poll interval 60s? Какова задержка
+в сценарии «мессенджер поверх LXMF поверх rns-over-email»?</li>
+<li><strong>Граничные случаи конфигурации</strong> — что происходит при смене пароля, истечении сессии,
+Full Inbox на IMAP.</li>
+</ul>
+<p>Если попробуете — напишите, что получилось:</p>
+<ul>
+<li><strong>GitHub Issues</strong>: <a href="https://github.com/x3ps/rns-over-email/issues">x3ps/rns-over-email/issues</a></li>
+<li><strong>Matrix</strong>: <code>@x3ps:matrix.org</code></li>
+<li><strong>Email</strong>: смотри профиль на GitHub</li>
+</ul>
+<p>Любой фидбек полезен: «работает на Fastmail» — уже хорошо. «Падает вот тут» — ещё лучше.</p>
+]]></content></item><item><title>Пишем Go-библиотеку для Reticulum: go-rns-pipe</title><link>https://x3ps.dev/ru/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/</link><pubDate>Thu, 19 Mar 2026 00:00:00 +0000</pubDate><guid>https://x3ps.dev/ru/posts/2026/03/writing-a-go-library-for-reticulum-go-rns-pipe/</guid><description>&lt;h2 id="что-такое-reticulum-и-зачем-мне-понадобился-go"&gt;Что такое Reticulum и зачем мне понадобился Go&lt;/h2&gt;
 &lt;p&gt;&lt;a href="https://reticulum.network/"&gt;Reticulum Network Stack&lt;/a&gt; — это криптографический сетевой стек, спроектированный
 для работы в условиях низкой пропускной способности и ненадёжных каналов. Ключевая идея: абстракция над
 физическим транспортом. Reticulum умеет работать поверх LoRa, TCP, UDP, последовательных портов — и через
@@ -37,21 +357,21 @@ HDLC поверх stdin/stdout, может подключиться к rnsd бе
 ни одного пакета.</p>
 <h2 id="архитектура">Архитектура</h2>
 <p>Библиотека состоит из шести компонентов:</p>
-<pre tabindex="0"><code>         stdin
-           │
-           ▼
-      ┌─────────┐    пакеты    ┌──────────────────┐
-      │ Decoder │ ──────────►  │                  │
-      └─────────┘              │    Interface     │ ◄── OnSend callback
-                               │                  │
-      ┌─────────┐   фрейм      │  pipeOnline      │ ◄── Start()/readLoop()
-      │ Encoder │ ◄──────────  │  transportOnline │ ◄── SetOnline(bool)
-      └─────────┘              └──────────────────┘
-           │                          │
-           ▼                     Reconnector
-         stdout                        │
-                                  Config / slog
-</code></pre><ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>         stdin
+</span></span><span style="display:flex;"><span>           │
+</span></span><span style="display:flex;"><span>           ▼
+</span></span><span style="display:flex;"><span>      ┌─────────┐    пакеты    ┌──────────────────┐
+</span></span><span style="display:flex;"><span>      │ Decoder │ ──────────►  │                  │
+</span></span><span style="display:flex;"><span>      └─────────┘              │    Interface     │ ◄── OnSend callback
+</span></span><span style="display:flex;"><span>                               │                  │
+</span></span><span style="display:flex;"><span>      ┌─────────┐   фрейм      │  pipeOnline      │ ◄── Start()/readLoop()
+</span></span><span style="display:flex;"><span>      │ Encoder │ ◄──────────  │  transportOnline │ ◄── SetOnline(bool)
+</span></span><span style="display:flex;"><span>      └─────────┘              └──────────────────┘
+</span></span><span style="display:flex;"><span>           │                          │
+</span></span><span style="display:flex;"><span>           ▼                     Reconnector
+</span></span><span style="display:flex;"><span>         stdout                        │
+</span></span><span style="display:flex;"><span>                                  Config / slog
+</span></span></code></pre></div><ul>
 <li><strong><code>Interface</code></strong> — центральный тип. Оркестрирует чтение/запись, управляет двухбитным состоянием
 <code>online</code>, вызывает коллбэки.</li>
 <li><strong><code>Encoder</code></strong> — оборачивает произвольный байтовый срез в HDLC-фрейм.</li>
@@ -94,8 +414,8 @@ HDLC поверх stdin/stdout, может подключиться к rnsd бе
 <h2 id="hdlc-фреймирование">HDLC-фреймирование</h2>
 <h3 id="как-устроен-фрейм">Как устроен фрейм</h3>
 <p>HDLC (High-Level Data Link Control) в упрощённом виде, похожем на PPP:</p>
-<pre tabindex="0"><code>0x7E | escaped_data | 0x7E
-</code></pre><p>Байт <code>0x7E</code> — флаг начала/конца фрейма. Если в полезной нагрузке встречается <code>0x7E</code> или <code>0x7D</code>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>0x7E | escaped_data | 0x7E
+</span></span></code></pre></div><p>Байт <code>0x7E</code> — флаг начала/конца фрейма. Если в полезной нагрузке встречается <code>0x7E</code> или <code>0x7D</code>
 (escape-символ), их нужно экранировать:</p>
 <table>
   <thead>

@@ -60,7 +60,7 @@ rnsd won't understand a single packet.
 
 The library consists of six components:
 
-```
+```text
          stdin
            │
            ▼
@@ -132,7 +132,7 @@ network side is temporarily unavailable.
 
 HDLC (High-Level Data Link Control) in a simplified form, similar to PPP:
 
-```
+```text
 0x7E | escaped_data | 0x7E
 ```
 
@@ -333,11 +333,13 @@ The core library uses only the Go standard library — `go.sum` is empty for the
 is a deliberate decision:
 
 **Pros:**
+
 - No diamond-dependency problems when embedded in another project
 - Builds in any environment without `go get`
 - Smaller supply-chain attack surface
 
 **Cons:**
+
 - No `zerolog` or `zap` — logging via the standard `log/slog`
 - No ready-made `backoff` package — implemented manually (it's small)
 

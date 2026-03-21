@@ -161,9 +161,6 @@
     "disableAliases": false,
     "pagerSize": 20,
     "path": "page"
-  },
-
-  "permalinks": {
-    "posts": "/posts/:year/:month/:title/"
   }
+
 }

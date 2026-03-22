@@ -8,7 +8,7 @@
   "PygmentsCodeFences": true,
   "PygmentsStyle": "monokai",
 
-  "copyright": "2025",
+  "copyright": "2026",
 
   "archetypeDir": "archetypes",
   "contentDir": "content",
@@ -162,5 +162,4 @@
     "pagerSize": 20,
     "path": "page"
   }
-
 }
